@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ניהול תקציב משותף</title>
     <link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
@@ -256,9 +256,8 @@
             text-align: left;
         }
 
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
+        .action-icon-btn {
+            background: rgba(0, 0, 0, 0.05);
             border: none;
             width: 35px;
             height: 35px;
@@ -268,7 +267,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-right: 5px;
         }
+        .action-icon-btn.delete { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .action-icon-btn.edit { color: var(--primary-blue); background: rgba(59, 130, 246, 0.1); }
 
         /* Reports Progress Bars */
         .report-cat {
@@ -511,9 +513,9 @@
                         </select>
                     </div>
 
-                    <button class="btn btn-primary" onclick="addExpense()">שמור הוצאה</button>
+                    <button id="btn-save-exp" class="btn btn-primary" onclick="addExpense()">שמור הוצאה</button>
                 </div>
-
+         
                 <h3 style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 10px; font-weight:800;">פירוט הוצאות (חודש נוכחי)</h3>
                 <div class="glass-panel" id="expenses-list" style="padding: 5px;">
                     <!-- ימולא אוטומטית -->
@@ -612,6 +614,14 @@
             }
         }
 
+        // --- הוספת מקש האנטר ללוגין ---
+        document.getElementById('pin-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkPin(); 
+                this.blur(); 
+            }
+        });
+
         // בדיקה אוטומטית אם כבר מחובר
         if (sessionStorage.getItem('budget_unlocked') === 'true') {
             document.getElementById('locked-screen').style.display = 'none';
@@ -623,6 +633,7 @@
         let allExpenses = {};
         let settlements = {};
         let currentMonthKey = "";
+        let currentEditId = null; // מזהה הוצאה לעריכה
         
         const catIcons = {
             'supermarket': '🛒',
@@ -643,20 +654,16 @@
         };
 
         function initApp() {
-            // קביעת חודש נוכחי (למשל "2026-08")
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             currentMonthKey = `${yyyy}-${mm}`;
             
-            // תצוגת תאריך בכותרת
             const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
             document.getElementById('current-month-badge').innerText = `${monthNames[today.getMonth()]} ${yyyy}`;
             
-            // ברירת מחדל לשדה התאריך בהוספה
             document.getElementById('exp-date').value = today.toISOString().split('T')[0];
 
-            // מאזין לשינויים במסד הנתונים
             db.ref('budget').on('value', (snapshot) => {
                 const data = snapshot.val() || {};
                 allExpenses = data.expenses || {};
@@ -676,7 +683,7 @@
             if(btnElement) btnElement.classList.add('active');
             document.querySelector('main').scrollTop = 0;
             
-            if(tabId === 'reports') generateReport(); // רענון הדוח כשנכנסים
+            if(tabId === 'reports') generateReport();
         }
 
         function showAlert(msg) {
@@ -704,14 +711,15 @@
                 return showAlert('יש למלא את כל השדות בצורה תקינה.');
             }
 
-            // חילוץ חודש ההוצאה מתוך התאריך שנבחר
             const expenseMonthKey = date.substring(0, 7); 
 
             if (settlements[expenseMonthKey]) {
-                return showAlert('החודש אליו שייך התאריך הזה כבר סגור. לא ניתן להוסיף.');
+                return showAlert('החודש אליו שייך התאריך הזה כבר סגור. לא ניתן להוסיף או לערוך.');
             }
 
-            const id = Date.now().toString();
+            // החלטה אם זו הוספה חדשה או עריכה
+            const id = currentEditId ? currentEditId : Date.now().toString();
+            
             db.ref('budget/expenses/' + id).set({
                 id: id,
                 title: title,
@@ -720,13 +728,54 @@
                 payer: payer,
                 category: category,
                 monthKey: expenseMonthKey,
-                timestamp: Date.now()
+                timestamp: currentEditId ? allExpenses[id].timestamp : Date.now()
             });
 
+            // איפוס שדות וחזרה למצב הוספה אם היינו בעריכה
             document.getElementById('exp-title').value = '';
             document.getElementById('exp-amount').value = '';
-            showAlert('ההוצאה נוספה בהצלחה!');
-            switchTab('dash', document.getElementById('nav-dash'));
+            
+            if(currentEditId) {
+                currentEditId = null;
+                document.getElementById('btn-save-exp').innerText = "שמור הוצאה";
+                showAlert('ההוצאה עודכנה בהצלחה!');
+                switchTab('dash', document.getElementById('nav-dash'));
+            } else {
+                // --- פופאפ שיתוף וואטסאפ (רק בהוספה חדשה) ---
+                setTimeout(() => {
+                    if (confirm("ההוצאה נשמרה בהצלחה! 💸\nהאם תרצה לשתף אותה בוואטסאפ?")) {
+                        const payerText = payer === 'eliran' ? 'אלירן' : 'דרור';
+                        const text = `היי! הוספתי הוצאה חדשה לתקציב:\n*${title}* - ${amount}₪ (שולם ע"י ${payerText}) 💳`;
+                        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+                        window.open(url, '_blank');
+                        switchTab('dash', document.getElementById('nav-dash'));
+                    } else {
+                        switchTab('dash', document.getElementById('nav-dash'));
+                    }
+                }, 100);
+            }
+        }
+
+        function editExpense(id) {
+            const exp = allExpenses[id];
+            if(!exp) return;
+            if (settlements[exp.monthKey]) {
+                return showAlert('לא ניתן לערוך הוצאה מחודש שכבר נסגר והתקזז.');
+            }
+
+            // טעינת הנתונים חזרה לטופס
+            document.getElementById('exp-title').value = exp.title;
+            document.getElementById('exp-amount').value = exp.amount;
+            document.getElementById('exp-date').value = exp.date;
+            document.getElementById('exp-payer').value = exp.payer;
+            document.getElementById('exp-category').value = exp.category;
+            
+            // עדכון משתנה המצב והכפתור
+            currentEditId = id;
+            document.getElementById('btn-save-exp').innerText = "💾 שמור שינויים";
+            
+            // גלילה חלקה למעלה לטופס העריכה
+            document.querySelector('main').scrollTop = 0;
         }
 
         function deleteExpense(id) {
@@ -784,7 +833,6 @@
                 balEl.classList.add('owed');
             }
 
-            // בדיקה אם החודש נסגר
             const isSettled = settlements[currentMonthKey] === true;
             document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none';
             document.getElementById('btn-quick-add').style.display = isSettled ? 'none' : 'block';
@@ -795,7 +843,6 @@
             const container = document.getElementById('expenses-list');
             container.innerHTML = '';
             
-            // סינון רק הוצאות של החודש הנוכחי ומיון מהחדש לישן
             const currentExpenses = Object.values(allExpenses)
                 .filter(exp => exp.monthKey === currentMonthKey)
                 .sort((a, b) => b.timestamp - a.timestamp);
@@ -816,10 +863,13 @@
                     <div class="expense-icon">${icon}</div>
                     <div class="expense-details">
                         <div class="expense-title">${exp.title}</div>
-                        <div class="expense-meta">${dateFormatted} • שולם ע"י: <strong>${payerName}</strong></div>
+                        <div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div>
                     </div>
                     <div class="expense-amount">₪${exp.amount.toLocaleString()}</div>
-                    <button class="delete-btn" onclick="deleteExpense('${exp.id}')">🗑️</button>
+                    <div style="display:flex;">
+                        <button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button>
+                        <button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -839,7 +889,7 @@
             btnEl.style.display = 'block';
             if (totals.eliran === totals.dror) {
                 textEl.innerText = "אתם מאוזנים לגמרי!\nאפס חובות.";
-                btnEl.style.display = 'none'; // אין טעם לקזז כשאפס
+                btnEl.style.display = 'none'; 
             } else if (totals.eliran > totals.dror) {
                 const owe = (totals.eliran - totals.dror) / 2;
                 textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`;
@@ -854,14 +904,13 @@
             const currentVal = selector.value;
             selector.innerHTML = '';
             
-            // איסוף כל החודשים שיש בהם נתונים (פלוס החודש הנוכחי תמיד)
             const monthsSet = new Set();
             monthsSet.add(currentMonthKey);
             for (let id in allExpenses) {
                 monthsSet.add(allExpenses[id].monthKey);
             }
             
-            const sortedMonths = Array.from(monthsSet).sort().reverse(); // מהחדש לישן
+            const sortedMonths = Array.from(monthsSet).sort().reverse(); 
             
             sortedMonths.forEach(m => {
                 const [y, mm] = m.split('-');
@@ -891,7 +940,6 @@
                 return;
             }
 
-            // חישוב לפי קטגוריות
             const catTotals = {};
             for(let key in catNames) catTotals[key] = 0;
 
@@ -913,7 +961,6 @@
                     <h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 20px; font-weight:800;">התפלגות לפי קטגוריות:</h3>
             `;
 
-            // יצירת פסי התקדמות לכל קטגוריה
             Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
                 if (catTotals[cat] > 0) {
                     const percent = Math.round((catTotals[cat] / totals.total) * 100);
@@ -934,7 +981,6 @@
             html += `</div>`;
             container.innerHTML = html;
         }
-
     </script>
 </body>
 </html>
