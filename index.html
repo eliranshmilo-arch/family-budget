@@ -207,11 +207,11 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* Expense List */
+        /* --- Expense List Redesign --- */
         .expense-item {
             display: flex;
             align-items: center;
-            padding: 15px;
+            padding: 16px;
             border-bottom: 1px solid rgba(0,0,0,0.05);
             gap: 15px;
         }
@@ -228,19 +228,45 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
+            border-radius: 14px;
             flex-shrink: 0;
         }
 
-        .expense-details {
+        .expense-content {
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0; /* מונע מהטקסט לדחוף החוצה את הכרטיסייה */
+        }
+
+        .expense-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
         }
 
         .expense-title {
             font-weight: 800;
             font-size: 1.1rem;
             color: var(--text-dark);
-            margin-bottom: 2px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .expense-amount {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary-blue);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .expense-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .expense-meta {
@@ -249,26 +275,25 @@
             font-weight: 600;
         }
 
-        .expense-amount {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--primary-blue);
-            text-align: left;
+        .expense-actions {
+            display: flex;
+            gap: 8px;
         }
 
         .action-icon-btn {
             background: rgba(0, 0, 0, 0.05);
             border: none;
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 5px;
+            transition: transform 0.1s;
         }
+        .action-icon-btn:active { transform: scale(0.9); }
         .action-icon-btn.delete { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
         .action-icon-btn.edit { color: var(--primary-blue); background: rgba(59, 130, 246, 0.1); }
 
@@ -406,7 +431,6 @@
             margin: 20px 0;
         }
 
-        /* הסתרת התוכן המרכזי עד לפתיחה */
         #app-container { display: none; height: 100%; flex-direction: column; }
         
         .settled-banner {
@@ -518,7 +542,6 @@
          
                 <h3 style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 10px; font-weight:800;">פירוט הוצאות (חודש נוכחי)</h3>
                 <div class="glass-panel" id="expenses-list" style="padding: 5px;">
-                    <!-- ימולא אוטומטית -->
                     <div style="padding: 20px; text-align: center; color: var(--text-gray);">אין הוצאות החודש עדיין.</div>
                 </div>
             </div>
@@ -553,7 +576,6 @@
                 </div>
 
                 <div id="report-container">
-                    <!-- ימולא דינמית -->
                     <div class="glass-panel" style="padding: 20px; text-align: center;">בחר חודש להצגת נתונים.</div>
                 </div>
             </div>
@@ -614,7 +636,7 @@
             }
         }
 
-        // --- הוספת מקש האנטר ללוגין ---
+        // מקש Enter במסך התחברות
         document.getElementById('pin-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 checkPin(); 
@@ -622,7 +644,6 @@
             }
         });
 
-        // בדיקה אוטומטית אם כבר מחובר
         if (sessionStorage.getItem('budget_unlocked') === 'true') {
             document.getElementById('locked-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -633,7 +654,7 @@
         let allExpenses = {};
         let settlements = {};
         let currentMonthKey = "";
-        let currentEditId = null; // מזהה הוצאה לעריכה
+        let currentEditId = null;
         
         const catIcons = {
             'supermarket': '🛒',
@@ -717,7 +738,6 @@
                 return showAlert('החודש אליו שייך התאריך הזה כבר סגור. לא ניתן להוסיף או לערוך.');
             }
 
-            // החלטה אם זו הוספה חדשה או עריכה
             const id = currentEditId ? currentEditId : Date.now().toString();
             
             db.ref('budget/expenses/' + id).set({
@@ -731,7 +751,6 @@
                 timestamp: currentEditId ? allExpenses[id].timestamp : Date.now()
             });
 
-            // איפוס שדות וחזרה למצב הוספה אם היינו בעריכה
             document.getElementById('exp-title').value = '';
             document.getElementById('exp-amount').value = '';
             
@@ -741,7 +760,6 @@
                 showAlert('ההוצאה עודכנה בהצלחה!');
                 switchTab('dash', document.getElementById('nav-dash'));
             } else {
-                // --- פופאפ שיתוף וואטסאפ (רק בהוספה חדשה) ---
                 setTimeout(() => {
                     if (confirm("ההוצאה נשמרה בהצלחה! 💸\nהאם תרצה לשתף אותה בוואטסאפ?")) {
                         const payerText = payer === 'eliran' ? 'אלירן' : 'דרור';
@@ -763,18 +781,15 @@
                 return showAlert('לא ניתן לערוך הוצאה מחודש שכבר נסגר והתקזז.');
             }
 
-            // טעינת הנתונים חזרה לטופס
             document.getElementById('exp-title').value = exp.title;
             document.getElementById('exp-amount').value = exp.amount;
             document.getElementById('exp-date').value = exp.date;
             document.getElementById('exp-payer').value = exp.payer;
             document.getElementById('exp-category').value = exp.category;
             
-            // עדכון משתנה המצב והכפתור
             currentEditId = id;
             document.getElementById('btn-save-exp').innerText = "💾 שמור שינויים";
             
-            // גלילה חלקה למעלה לטופס העריכה
             document.querySelector('main').scrollTop = 0;
         }
 
@@ -861,14 +876,18 @@
                 div.className = 'expense-item';
                 div.innerHTML = `
                     <div class="expense-icon">${icon}</div>
-                    <div class="expense-details">
-                        <div class="expense-title">${exp.title}</div>
-                        <div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div>
-                    </div>
-                    <div class="expense-amount">₪${exp.amount.toLocaleString()}</div>
-                    <div style="display:flex;">
-                        <button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button>
-                        <button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button>
+                    <div class="expense-content">
+                        <div class="expense-title-row">
+                            <div class="expense-title">${exp.title}</div>
+                            <div class="expense-amount">₪${exp.amount.toLocaleString()}</div>
+                        </div>
+                        <div class="expense-meta-row">
+                            <div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div>
+                            <div class="expense-actions">
+                                <button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button>
+                                <button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(div);
