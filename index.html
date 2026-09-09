@@ -28,22 +28,11 @@
 
         * { box-sizing: border-box; font-family: 'Heebo', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%);
-            background-attachment: fixed; color: var(--text-dark); display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-        }
+        body { background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 100%); background-attachment: fixed; color: var(--text-dark); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        .glass-panel {
-            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 20px;
-        }
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: 20px; }
 
-        header {
-            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue)); color: var(--white); text-align: center;
-            padding: 20px 15px 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); z-index: 10; border-bottom-left-radius: 25px;
-            border-bottom-right-radius: 25px; position: relative;
-        }
-
+        header { background: linear-gradient(135deg, var(--primary-blue), var(--light-blue)); color: var(--white); text-align: center; padding: 20px 15px 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); z-index: 10; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px; position: relative; }
         header h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .month-badge { font-size: 1rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 4px 15px; border-radius: 20px; display: inline-block; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.3); margin-top: 5px; }
 
@@ -63,10 +52,7 @@
 
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.9rem; font-weight: 800; color: var(--text-gray); margin-bottom: 6px; }
-        input[type="text"], input[type="number"], input[type="date"], select {
-            width: 100%; padding: 14px; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 12px;
-            font-size: 1.05rem; font-weight: 600; color: var(--text-dark); transition: all 0.3s ease;
-        }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 14px; background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1.05rem; font-weight: 600; color: var(--text-dark); transition: all 0.3s ease; }
         input:focus, select:focus { background: #fff; border-color: var(--light-blue); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
 
         .btn { display: block; width: 100%; text-align: center; padding: 16px; border-radius: 14px; text-decoration: none; font-size: 1.1rem; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -90,7 +76,8 @@
         .action-icon-btn.edit { color: var(--primary-blue); background: rgba(59, 130, 246, 0.1); }
 
         .report-cat { margin-bottom: 15px; }
-        .report-cat-header { display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 800; margin-bottom: 5px; color: var(--text-dark); }
+        .report-cat-header { display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 800; margin-bottom: 5px; color: var(--text-dark); transition: opacity 0.2s; }
+        .report-cat-header:active { opacity: 0.7; }
         .progress-bar-bg { background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden; }
         .progress-bar-fill { background: linear-gradient(90deg, var(--light-blue), var(--accent-color)); height: 100%; border-radius: 5px; width: 0%; transition: width 1s ease-in-out; }
 
@@ -107,6 +94,7 @@
 
         .locked-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, var(--primary-blue), var(--light-blue)); color: white; padding: 20px; text-align: center; position: absolute; top: 0; left: 0; width: 100%; z-index: 9999; }
         .locked-screen input { text-align: center; letter-spacing: 10px; font-size: 1.5rem; width: 200px; margin: 20px 0; }
+
         #app-container { display: none; height: 100%; flex-direction: column; }
         .settled-banner { background: rgba(16, 185, 129, 0.1); color: #047857; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.2); display: none; }
 
@@ -119,15 +107,13 @@
         .cl-meta { font-size: 0.8rem; color: var(--text-gray); }
         .cl-btn { padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 800; cursor: pointer; border: none; background: var(--primary-blue); color: white; }
         .cl-btn.paid { background: rgba(16, 185, 129, 0.2); color: var(--success); cursor: default; }
-
-        /* --- Quick Pay Mini-Form --- */
         .quick-pay-form { display: none; background: rgba(59, 130, 246, 0.1); padding: 15px; border-radius: 12px; margin-top: 10px; }
         .quick-pay-form.active { display: block; animation: slideFadeIn 0.2s ease-out; }
     </style>
 </head>
 <body>
 
-    <!-- מסך כניסה -->
+    <!-- מסך כניסה (קוד זיהוי) -->
     <div id="locked-screen" class="locked-screen">
         <h1 style="font-size: 2rem; margin-bottom: 10px;">ניהול תקציב משותף</h1>
         <p style="font-size: 1.1rem; opacity: 0.9;">אלירן ודרור</p>
@@ -155,11 +141,10 @@
                 <button class="btn btn-primary" onclick="switchTab('add', document.getElementById('nav-add'))" id="btn-quick-add" style="margin-top: 20px;">+ הוסף הוצאה</button>
             </div>
 
-            <!-- Tab 2: Expenses & Smart Checklist -->
+            <!-- Tab 2: Add/List Expenses -->
             <div id="tab-add" class="tab-content">
                 <h2>📝 ניהול הוצאות</h2>
 
-                <!-- SMART CHECKLIST -->
                 <div class="glass-panel" id="checklist-container" style="padding: 10px; margin-bottom: 25px;">
                     <h3 style="font-size: 1rem; color: var(--text-gray); margin-bottom: 10px; font-weight:800; padding-right:10px; padding-top:5px;">צ'קליסט קבועות - החודש:</h3>
                     <div id="monthly-checklist">
@@ -167,7 +152,6 @@
                     </div>
                 </div>
                 
-                <!-- REGULAR FORM -->
                 <div id="add-expense-form" class="glass-panel" style="padding: 20px; margin-bottom: 25px;">
                     <h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 15px; font-weight:800;">הוספת הוצאה שוטפת</h3>
                     <div class="input-group"><label>שם ההוצאה</label><input type="text" id="exp-title" placeholder="על מה שילמנו?"></div>
@@ -195,16 +179,21 @@
                 </div>
             </div>
 
-            <!-- Tab 4: Reports -->
+            <!-- Tab 4: Reports (UPDATED) -->
             <div id="tab-reports" class="tab-content">
                 <h2>📊 דוחות והיסטוריה</h2>
                 <div class="glass-panel" style="padding: 20px; margin-bottom: 20px;">
-                    <div class="input-group" style="margin-bottom: 0;"><label>בחר חודש לתצוגה:</label><select id="report-month-selector" onchange="generateReport()"></select></div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>בחר חודש לתצוגה:</label>
+                        <select id="report-month-selector" onchange="generateReport()"></select>
+                    </div>
                 </div>
-                <div id="report-container"><div class="glass-panel" style="padding: 20px; text-align: center;">בחר חודש להצגת נתונים.</div></div>
+                <div id="report-container">
+                    <div class="glass-panel" style="padding: 20px; text-align: center;">בחר חודש להצגת נתונים.</div>
+                </div>
             </div>
 
-            <!-- Tab 5: Settings (New!) -->
+            <!-- Tab 5: Settings -->
             <div id="tab-settings" class="tab-content">
                 <h2>⚙️ הגדרות מערכת</h2>
                 <div class="glass-panel" style="padding: 20px; margin-bottom: 25px;">
@@ -214,11 +203,8 @@
                     <div class="input-group"><label>קטגוריה</label><select id="set-sub-cat"><option value="bills">⚡ חשבונות ודיור</option><option value="kids">🧸 ילדים וחינוך</option><option value="car">🚗 רכב ותחבורה</option><option value="misc">🛍️ שונות</option></select></div>
                     <button class="btn btn-success" onclick="addSubscription()">➕ הוסף לרשימה</button>
                 </div>
-
                 <h3 style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 10px; font-weight:800;">ניהול רשימת ההוצאות הקבועות</h3>
-                <div class="glass-panel" id="subscriptions-list" style="padding: 5px;">
-                    <!-- Subscriptions will be injected here -->
-                </div>
+                <div class="glass-panel" id="subscriptions-list" style="padding: 5px;"></div>
             </div>
         </main>
 
@@ -240,7 +226,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 
     <script>
-        // --- 1. FIREBASE SETUP ---
         const firebaseConfig = {
             apiKey: "AIzaSyDQdVZy5STaT7oOlzXcH2NbN6eoAIyWNSI",
             authDomain: "home-budget-app-4d311.firebaseapp.com",
@@ -253,7 +238,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- 2. AUTHENTICATION ---
         function checkPin() {
             const pin = document.getElementById('pin-input').value;
             if (pin === "1981") {
@@ -262,32 +246,21 @@
                 document.getElementById('app-container').style.display = 'flex';
                 initApp();
             } else {
-                document.getElementById('pin-error').style.display = 'block';
-                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-error').style.display = 'block'; document.getElementById('pin-input').value = '';
             }
         }
+        document.getElementById('pin-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') { checkPin(); this.blur(); } });
+        if (sessionStorage.getItem('budget_unlocked') === 'true') { document.getElementById('locked-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; initApp(); }
 
-        document.getElementById('pin-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') { checkPin(); this.blur(); }
-        });
-
-        if (sessionStorage.getItem('budget_unlocked') === 'true') {
-            document.getElementById('locked-screen').style.display = 'none';
-            document.getElementById('app-container').style.display = 'flex';
-            initApp();
-        }
-
-        // --- 3. APP LOGIC & STATE ---
         let allExpenses = {};
         let settlements = {};
-        let subscriptions = {}; // רשימת ההוצאות הקבועות (הגדרות)
+        let subscriptions = {}; 
         let currentMonthKey = "";
         let currentEditId = null;
         
         const catIcons = { 'supermarket': '🛒', 'bills': '⚡', 'kids': '🧸', 'car': '🚗', 'entertainment': '🍻', 'misc': '🛍️' };
         const catNames = { 'supermarket': 'סופר וקניות', 'bills': 'חשבונות ודיור', 'kids': 'ילדים וחינוך', 'car': 'רכב ותחבורה', 'entertainment': 'בילויים ומסעדות', 'misc': 'שונות' };
 
-        // Default subscriptions payload if empty
         const defaultSubscriptions = {
             "sub1": { id: "sub1", title: "חשבון חשמל", category: "bills", amount: "" },
             "sub2": { id: "sub2", title: "חשבון מים", category: "bills", amount: "" },
@@ -301,367 +274,248 @@
         };
 
         function initApp() {
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const today = new Date(); const yyyy = today.getFullYear(); const mm = String(today.getMonth() + 1).padStart(2, '0');
             currentMonthKey = `${yyyy}-${mm}`;
-            
             const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
             document.getElementById('current-month-badge').innerText = `${monthNames[today.getMonth()]} ${yyyy}`;
             document.getElementById('exp-date').value = today.toISOString().split('T')[0];
 
             db.ref('budget').on('value', (snapshot) => {
                 const data = snapshot.val() || {};
-                allExpenses = data.expenses || {};
-                settlements = data.settlements || {};
+                allExpenses = data.expenses || {}; settlements = data.settlements || {};
+                if (!data.subscriptions) { db.ref('budget/subscriptions').set(defaultSubscriptions); subscriptions = defaultSubscriptions; } 
+                else { subscriptions = data.subscriptions; }
                 
-                // Initialize default subscriptions if none exist in DB
-                if (!data.subscriptions) {
-                    db.ref('budget/subscriptions').set(defaultSubscriptions);
-                    subscriptions = defaultSubscriptions;
-                } else {
-                    subscriptions = data.subscriptions;
-                }
-                
-                updateDashboard();
-                renderExpensesList();
-                renderSmartChecklist();
-                renderSettingsSubscriptions();
-                updateSettlementTab();
-                populateReportSelector();
+                updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab(); populateReportSelector();
             });
         }
 
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.add('active');
-            if(btnElement) btnElement.classList.add('active');
-            document.querySelector('main').scrollTop = 0;
-            if(tabId === 'reports') generateReport();
+            document.getElementById('tab-' + tabId).classList.add('active'); if(btnElement) btnElement.classList.add('active');
+            document.querySelector('main').scrollTop = 0; if(tabId === 'reports') generateReport();
         }
 
         function showAlert(msg) { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('customModal').style.display = 'none'; }
 
-        // --- 4. EXPENSE MANAGEMENT ---
         function addExpense() {
             if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי כבר נסגר. לא ניתן להוסיף הוצאות.');
-
-            const title = document.getElementById('exp-title').value.trim();
-            const amount = parseFloat(document.getElementById('exp-amount').value);
-            const date = document.getElementById('exp-date').value;
-            const payer = document.getElementById('exp-payer').value;
-            const category = document.getElementById('exp-category').value;
-
-            // Extra marker to link an expense to a subscription (for the checklist)
+            const title = document.getElementById('exp-title').value.trim(); const amount = parseFloat(document.getElementById('exp-amount').value);
+            const date = document.getElementById('exp-date').value; const payer = document.getElementById('exp-payer').value; const category = document.getElementById('exp-category').value;
             const linkedSubId = document.getElementById('btn-save-exp').getAttribute('data-linked-sub') || null;
-
             if (!title || isNaN(amount) || amount <= 0 || !date) return showAlert('יש למלא את כל השדות בצורה תקינה.');
-
             const expenseMonthKey = date.substring(0, 7); 
             if (settlements[expenseMonthKey]) return showAlert('החודש אליו שייך התאריך הזה כבר סגור.');
 
             const id = currentEditId ? currentEditId : Date.now().toString();
-            
             db.ref('budget/expenses/' + id).set({
                 id: id, title: title, amount: amount, date: date, payer: payer, category: category,
-                monthKey: expenseMonthKey, linkedSubId: linkedSubId,
-                timestamp: currentEditId ? allExpenses[id].timestamp : Date.now()
+                monthKey: expenseMonthKey, linkedSubId: linkedSubId, timestamp: currentEditId ? allExpenses[id].timestamp : Date.now()
             });
 
-            // Reset form
-            document.getElementById('exp-title').value = '';
-            document.getElementById('exp-amount').value = '';
-            document.getElementById('btn-save-exp').removeAttribute('data-linked-sub');
-            
-            if(currentEditId) {
-                currentEditId = null;
-                document.getElementById('btn-save-exp').innerText = "שמור הוצאה";
-                showAlert('ההוצאה עודכנה בהצלחה!');
-                switchTab('dash', document.getElementById('nav-dash'));
-            } else {
-                setTimeout(() => {
-                    if (confirm("ההוצאה נשמרה בהצלחה! 💸\nהאם תרצה לשתף אותה בוואטסאפ?")) {
-                        const payerText = payer === 'eliran' ? 'אלירן' : 'דרור';
-                        const text = `היי! הוספתי הוצאה חדשה לתקציב:\n*${title}* - ${amount}₪ (שולם ע"י ${payerText}) 💳`;
-                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                    }
-                    switchTab('dash', document.getElementById('nav-dash'));
-                }, 100);
-            }
+            document.getElementById('exp-title').value = ''; document.getElementById('exp-amount').value = ''; document.getElementById('btn-save-exp').removeAttribute('data-linked-sub');
+            if(currentEditId) { currentEditId = null; document.getElementById('btn-save-exp').innerText = "שמור הוצאה"; showAlert('ההוצאה עודכנה בהצלחה!'); switchTab('dash', document.getElementById('nav-dash')); } 
+            else { setTimeout(() => { if (confirm("ההוצאה נשמרה בהצלחה! 💸\nהאם תרצה לשתף אותה בוואטסאפ?")) { const payerText = payer === 'eliran' ? 'אלירן' : 'דרור'; const text = `היי! הוספתי הוצאה חדשה לתקציב:\n*${title}* - ${amount}₪ (שולם ע"י ${payerText}) 💳`; window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank'); } switchTab('dash', document.getElementById('nav-dash')); }, 100); }
         }
 
         function editExpense(id) {
-            const exp = allExpenses[id];
-            if(!exp) return;
-            if (settlements[exp.monthKey]) return showAlert('לא ניתן לערוך הוצאה מחודש סגור.');
-
-            document.getElementById('exp-title').value = exp.title;
-            document.getElementById('exp-amount').value = exp.amount;
-            document.getElementById('exp-date').value = exp.date;
-            document.getElementById('exp-payer').value = exp.payer;
-            document.getElementById('exp-category').value = exp.category;
-            
-            currentEditId = id;
-            document.getElementById('btn-save-exp').innerText = "💾 שמור שינויים";
-            document.querySelector('main').scrollTop = 0;
+            const exp = allExpenses[id]; if(!exp) return; if (settlements[exp.monthKey]) return showAlert('לא ניתן לערוך הוצאה מחודש סגור.');
+            document.getElementById('exp-title').value = exp.title; document.getElementById('exp-amount').value = exp.amount; document.getElementById('exp-date').value = exp.date; document.getElementById('exp-payer').value = exp.payer; document.getElementById('exp-category').value = exp.category;
+            currentEditId = id; document.getElementById('btn-save-exp').innerText = "💾 שמור שינויים"; document.querySelector('main').scrollTop = 0;
         }
 
         function deleteExpense(id) {
-            const exp = allExpenses[id];
-            if(!exp) return;
-            if (settlements[exp.monthKey]) return showAlert('לא ניתן למחוק הוצאה מחודש סגור.');
+            const exp = allExpenses[id]; if(!exp) return; if (settlements[exp.monthKey]) return showAlert('לא ניתן למחוק הוצאה מחודש סגור.');
             if(confirm('למחוק הוצאה זו?')) db.ref('budget/expenses/' + id).remove();
         }
 
-        // --- 5. SMART CHECKLIST LOGIC ---
-        
-        // Find if a subscription was already paid in the current month
         function getPaidSubscriptionDetails(subId) {
-            for (let expId in allExpenses) {
-                const exp = allExpenses[expId];
-                // Match by linked ID OR by exact Title match within the current month
-                if (exp.monthKey === currentMonthKey && (exp.linkedSubId === subId || exp.title === subscriptions[subId].title)) {
-                    return exp;
-                }
-            }
-            return null;
+            for (let expId in allExpenses) { const exp = allExpenses[expId]; if (exp.monthKey === currentMonthKey && (exp.linkedSubId === subId || exp.title === subscriptions[subId].title)) return exp; } return null;
         }
 
         function renderSmartChecklist() {
-            const container = document.getElementById('monthly-checklist');
-            container.innerHTML = '';
-            
-            let html = '';
-            
+            const container = document.getElementById('monthly-checklist'); container.innerHTML = ''; let html = '';
             for (let subId in subscriptions) {
-                const sub = subscriptions[subId];
-                const paidExp = getPaidSubscriptionDetails(subId);
-                
+                const sub = subscriptions[subId]; const paidExp = getPaidSubscriptionDetails(subId);
                 if (paidExp) {
-                    // ALREADY PAID
                     const payerName = paidExp.payer === 'eliran' ? 'אלירן' : 'דרור';
-                    html += `
-                        <div class="checklist-item">
-                            <div class="cl-status-icon">✅</div>
-                            <div class="cl-info">
-                                <div class="cl-title" style="text-decoration: line-through; color: var(--success);">${sub.title}</div>
-                                <div class="cl-meta">שולם ע"י ${payerName} (₪${paidExp.amount})</div>
-                            </div>
-                            <button class="cl-btn paid">שולם</button>
-                        </div>
-                    `;
+                    html += `<div class="checklist-item"><div class="cl-status-icon">✅</div><div class="cl-info"><div class="cl-title" style="text-decoration: line-through; color: var(--success);">${sub.title}</div><div class="cl-meta">שולם ע"י ${payerName} (₪${paidExp.amount})</div></div><button class="cl-btn paid">שולם</button></div>`;
                 } else {
-                    // PENDING PAYMENT
                     html += `
-                        <div class="checklist-item">
-                            <div class="cl-status-icon">⏳</div>
-                            <div class="cl-info">
-                                <div class="cl-title">${sub.title}</div>
-                                <div class="cl-meta">${sub.amount ? `סכום משוער: ₪${sub.amount}` : 'סכום משתנה'}</div>
-                            </div>
-                            <button class="cl-btn" onclick="openQuickPay('${subId}')">תשלום</button>
-                        </div>
+                        <div class="checklist-item"><div class="cl-status-icon">⏳</div><div class="cl-info"><div class="cl-title">${sub.title}</div><div class="cl-meta">${sub.amount ? `סכום משוער: ₪${sub.amount}` : 'סכום משתנה'}</div></div><button class="cl-btn" onclick="openQuickPay('${subId}')">תשלום</button></div>
                         <div id="qp-${subId}" class="quick-pay-form">
-                            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                                <input type="number" id="qp-amount-${subId}" placeholder="סכום (₪)" value="${sub.amount || ''}" style="margin:0; padding:10px;">
-                                <select id="qp-payer-${subId}" style="margin:0; padding:10px;">
-                                    <option value="eliran">אלירן שילם</option>
-                                    <option value="dror">דרור שילם/ה</option>
-                                </select>
-                            </div>
-                            <div style="display:flex; gap:10px;">
-                                <button class="btn btn-success" style="padding:10px; flex:2;" onclick="submitQuickPay('${subId}')">💾 אישור תשלום</button>
-                                <button class="btn" style="padding:10px; flex:1; background:rgba(0,0,0,0.1); color:#333;" onclick="closeQuickPay('${subId}')">ביטול</button>
-                            </div>
-                        </div>
-                    `;
+                            <div style="display:flex; gap:10px; margin-bottom:10px;"><input type="number" id="qp-amount-${subId}" placeholder="סכום (₪)" value="${sub.amount || ''}" style="margin:0; padding:10px;"><select id="qp-payer-${subId}" style="margin:0; padding:10px;"><option value="eliran">אלירן שילם</option><option value="dror">דרור שילם/ה</option></select></div>
+                            <div style="display:flex; gap:10px;"><button class="btn btn-success" style="padding:10px; flex:2;" onclick="submitQuickPay('${subId}')">💾 אישור תשלום</button><button class="btn" style="padding:10px; flex:1; background:rgba(0,0,0,0.1); color:#333;" onclick="closeQuickPay('${subId}')">ביטול</button></div>
+                        </div>`;
                 }
             }
             container.innerHTML = html;
         }
 
-        function openQuickPay(subId) {
-            // Close others first
-            document.querySelectorAll('.quick-pay-form').forEach(el => el.classList.remove('active'));
-            document.getElementById(`qp-${subId}`).classList.add('active');
-        }
+        function openQuickPay(subId) { document.querySelectorAll('.quick-pay-form').forEach(el => el.classList.remove('active')); document.getElementById(`qp-${subId}`).classList.add('active'); }
         function closeQuickPay(subId) { document.getElementById(`qp-${subId}`).classList.remove('active'); }
 
         function submitQuickPay(subId) {
             if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי סגור. לא ניתן להוסיף.');
-            const sub = subscriptions[subId];
-            const amount = parseFloat(document.getElementById(`qp-amount-${subId}`).value);
-            const payer = document.getElementById(`qp-payer-${subId}`).value;
-            
+            const sub = subscriptions[subId]; const amount = parseFloat(document.getElementById(`qp-amount-${subId}`).value); const payer = document.getElementById(`qp-payer-${subId}`).value;
             if (isNaN(amount) || amount <= 0) return showAlert('נא להזין סכום תקין.');
-
-            const expenseId = Date.now().toString();
-            const today = new Date().toISOString().split('T')[0];
-
-            db.ref('budget/expenses/' + expenseId).set({
-                id: expenseId, title: sub.title, amount: amount, date: today,
-                payer: payer, category: sub.category || 'bills',
-                monthKey: currentMonthKey, linkedSubId: subId, timestamp: Date.now()
-            }).then(() => {
-                showAlert(`${sub.title} עודכן בהצלחה!`);
-            });
+            const expenseId = Date.now().toString(); const today = new Date().toISOString().split('T')[0];
+            db.ref('budget/expenses/' + expenseId).set({ id: expenseId, title: sub.title, amount: amount, date: today, payer: payer, category: sub.category || 'bills', monthKey: currentMonthKey, linkedSubId: subId, timestamp: Date.now() }).then(() => { showAlert(`${sub.title} עודכן בהצלחה!`); });
         }
 
-        // --- 6. SETTINGS (SUBSCRIPTIONS) MANAGEMENT ---
         function addSubscription() {
-            const title = document.getElementById('set-sub-title').value.trim();
-            const amount = parseFloat(document.getElementById('set-sub-amount').value) || "";
-            const cat = document.getElementById('set-sub-cat').value;
-
+            const title = document.getElementById('set-sub-title').value.trim(); const amount = parseFloat(document.getElementById('set-sub-amount').value) || ""; const cat = document.getElementById('set-sub-cat').value;
             if(!title) return showAlert('יש להזין את שם ההוצאה הקבועה.');
             const id = 'sub_' + Date.now();
-            
-            db.ref('budget/subscriptions/' + id).set({
-                id: id, title: title, category: cat, amount: amount
-            }).then(() => {
-                document.getElementById('set-sub-title').value = '';
-                document.getElementById('set-sub-amount').value = '';
-                showAlert('ההוצאה הקבועה נוספה לצ\'קליסט.');
-            });
+            db.ref('budget/subscriptions/' + id).set({ id: id, title: title, category: cat, amount: amount }).then(() => { document.getElementById('set-sub-title').value = ''; document.getElementById('set-sub-amount').value = ''; showAlert('ההוצאה הקבועה נוספה לצ\'קליסט.'); });
         }
-
-        function deleteSubscription(id) {
-            if(confirm('האם להסיר משימה זו מהצ\'קליסט החודשי הקבוע?')) {
-                db.ref('budget/subscriptions/' + id).remove();
-            }
-        }
-
+        function deleteSubscription(id) { if(confirm('האם להסיר משימה זו מהצ\'קליסט החודשי הקבוע?')) db.ref('budget/subscriptions/' + id).remove(); }
         function renderSettingsSubscriptions() {
-            const container = document.getElementById('subscriptions-list');
-            container.innerHTML = '';
-            
-            if(Object.keys(subscriptions).length === 0) {
-                container.innerHTML = '<div style="padding:15px; text-align:center;">אין הוצאות קבועות מוגדרות.</div>';
-                return;
-            }
-
+            const container = document.getElementById('subscriptions-list'); container.innerHTML = '';
+            if(Object.keys(subscriptions).length === 0) { container.innerHTML = '<div style="padding:15px; text-align:center;">אין הוצאות קבועות מוגדרות.</div>'; return; }
             for(let id in subscriptions) {
-                const sub = subscriptions[id];
-                const amtText = sub.amount ? `₪${sub.amount}` : 'משתנה';
-                const icon = catIcons[sub.category] || '💸';
-
-                container.innerHTML += `
-                    <div class="expense-item" style="padding:12px 15px;">
-                        <div class="expense-icon" style="width:40px; height:40px; font-size:1.4rem;">${icon}</div>
-                        <div class="expense-content">
-                            <div class="expense-title-row">
-                                <div class="expense-title">${sub.title}</div>
-                                <div class="expense-amount" style="font-size:1rem; color:var(--text-gray);">${amtText}</div>
-                            </div>
-                        </div>
-                        <button class="action-icon-btn delete" onclick="deleteSubscription('${id}')">🗑️</button>
-                    </div>
-                `;
+                const sub = subscriptions[id]; const amtText = sub.amount ? `₪${sub.amount}` : 'משתנה'; const icon = catIcons[sub.category] || '💸';
+                container.innerHTML += `<div class="expense-item" style="padding:12px 15px;"><div class="expense-icon" style="width:40px; height:40px; font-size:1.4rem;">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${sub.title}</div><div class="expense-amount" style="font-size:1rem; color:var(--text-gray);">${amtText}</div></div></div><button class="action-icon-btn delete" onclick="deleteSubscription('${id}')">🗑️</button></div>`;
             }
         }
 
-        // --- 7. RENDERING GENERAL DASHBOARD & LISTS ---
-        function getMonthTotals(monthKey) {
-            let eliran = 0; let dror = 0;
-            for (let id in allExpenses) {
-                const exp = allExpenses[id];
-                if (exp.monthKey === monthKey) {
-                    if (exp.payer === 'eliran') eliran += exp.amount;
-                    if (exp.payer === 'dror') dror += exp.amount;
-                }
-            }
-            return { eliran, dror, total: eliran + dror };
-        }
+        function getMonthTotals(monthKey) { let eliran = 0; let dror = 0; for (let id in allExpenses) { const exp = allExpenses[id]; if (exp.monthKey === monthKey) { if (exp.payer === 'eliran') eliran += exp.amount; if (exp.payer === 'dror') dror += exp.amount; } } return { eliran, dror, total: eliran + dror }; }
 
         function updateDashboard() {
             const totals = getMonthTotals(currentMonthKey);
-            document.getElementById('dash-total').innerText = '₪' + totals.total.toLocaleString();
-            document.getElementById('dash-eliran').innerText = '₪' + totals.eliran.toLocaleString();
-            document.getElementById('dash-dror').innerText = '₪' + totals.dror.toLocaleString();
-
-            const balEl = document.getElementById('dash-balance');
-            balEl.classList.remove('owed', 'credit');
-            if (totals.eliran === totals.dror) { balEl.innerText = "מאוזן לגמרי (0₪)"; } 
-            else if (totals.eliran > totals.dror) { const owe = (totals.eliran - totals.dror)/2; balEl.innerText = `דרור חייב/ת ₪${owe.toLocaleString()}`; balEl.classList.add('credit'); } 
-            else { const owe = (totals.dror - totals.eliran)/2; balEl.innerText = `אלירן חייב ₪${owe.toLocaleString()}`; balEl.classList.add('owed'); }
-
+            document.getElementById('dash-total').innerText = '₪' + totals.total.toLocaleString(); document.getElementById('dash-eliran').innerText = '₪' + totals.eliran.toLocaleString(); document.getElementById('dash-dror').innerText = '₪' + totals.dror.toLocaleString();
+            const balEl = document.getElementById('dash-balance'); balEl.classList.remove('owed', 'credit');
+            if (totals.eliran === totals.dror) { balEl.innerText = "מאוזן לגמרי (0₪)"; } else if (totals.eliran > totals.dror) { const owe = (totals.eliran - totals.dror) / 2; balEl.innerText = `דרור חייב/ת לאלירן ₪${owe.toLocaleString()}`; balEl.classList.add('credit'); } else { const owe = (totals.dror - totals.eliran) / 2; balEl.innerText = `אלירן חייב לדרור ₪${owe.toLocaleString()}`; balEl.classList.add('owed'); }
             const isSettled = settlements[currentMonthKey] === true;
-            document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none';
-            document.getElementById('checklist-container').style.display = isSettled ? 'none' : 'block';
-            document.getElementById('add-expense-form').style.display = isSettled ? 'none' : 'block';
+            document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none'; document.getElementById('checklist-container').style.display = isSettled ? 'none' : 'block'; document.getElementById('add-expense-form').style.display = isSettled ? 'none' : 'block';
         }
 
         function renderExpensesList() {
             const container = document.getElementById('expenses-list'); container.innerHTML = '';
-            const currentExpenses = Object.values(allExpenses).filter(e => e.monthKey === currentMonthKey).sort((a,b) => b.timestamp - a.timestamp);
-            if (currentExpenses.length === 0) return container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-gray);">אין הוצאות החודש עדיין.</div>';
-
+            const currentExpenses = Object.values(allExpenses).filter(exp => exp.monthKey === currentMonthKey).sort((a, b) => b.timestamp - a.timestamp);
+            if (currentExpenses.length === 0) { container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-gray);">אין הוצאות החודש עדיין.</div>'; return; }
             currentExpenses.forEach(exp => {
-                const payerName = exp.payer === 'eliran' ? 'אלירן' : 'דרור';
-                const dateFormatted = exp.date.split('-').reverse().join('/');
-                const icon = catIcons[exp.category] || '💸';
-                container.innerHTML += `
-                    <div class="expense-item">
-                        <div class="expense-icon">${icon}</div>
-                        <div class="expense-content">
-                            <div class="expense-title-row"><div class="expense-title">${exp.title}</div><div class="expense-amount">₪${exp.amount.toLocaleString()}</div></div>
-                            <div class="expense-meta-row"><div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div><div class="expense-actions"><button class="action-icon-btn edit" onclick="editExpense('${exp.id}')">✏️</button><button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')">🗑️</button></div></div>
-                        </div>
-                    </div>`;
+                const payerName = exp.payer === 'eliran' ? 'אלירן' : 'דרור'; const dateFormatted = exp.date.split('-').reverse().join('/'); const icon = catIcons[exp.category] || '💸';
+                const div = document.createElement('div'); div.className = 'expense-item';
+                div.innerHTML = `<div class="expense-icon">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${exp.title}</div><div class="expense-amount">₪${exp.amount.toLocaleString()}</div></div><div class="expense-meta-row"><div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div><div class="expense-actions"><button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button><button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button></div></div></div>`;
+                container.appendChild(div);
             });
         }
 
         function updateSettlementTab() {
-            const totals = getMonthTotals(currentMonthKey);
-            const textEl = document.getElementById('settle-text'); const btnEl = document.getElementById('btn-settle');
-            if (settlements[currentMonthKey]) {
-                textEl.innerHTML = "<span style='color: var(--success);'>החודש סגור ומאוזן! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>התקזזתם על חודש זה ואין חובות.</span>";
-                btnEl.style.display = 'none'; return;
-            }
+            const totals = getMonthTotals(currentMonthKey); const textEl = document.getElementById('settle-text'); const btnEl = document.getElementById('btn-settle');
+            if (settlements[currentMonthKey]) { textEl.innerHTML = "<span style='color: var(--success);'>החודש סגור ומאוזן! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>התקזזתם על חודש זה ואין חובות.</span>"; btnEl.style.display = 'none'; return; }
             btnEl.style.display = 'block';
-            if (totals.eliran === totals.dror) { textEl.innerText = "אתם מאוזנים לגמרי!\nאפס חובות."; btnEl.style.display = 'none'; } 
-            else if (totals.eliran > totals.dror) { textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${((totals.eliran - totals.dror)/2).toLocaleString()}`; } 
-            else { textEl.innerText = `אלירן צריך להעביר לדרור:\n₪${((totals.dror - totals.eliran)/2).toLocaleString()}`; }
+            if (totals.eliran === totals.dror) { textEl.innerText = "אתם מאוזנים לגמרי!\nאפס חובות."; btnEl.style.display = 'none'; } else if (totals.eliran > totals.dror) { const owe = (totals.eliran - totals.dror) / 2; textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`; } else { const owe = (totals.dror - totals.eliran) / 2; textEl.innerText = `אלירן צריך להעביר לדרור:\n₪${owe.toLocaleString()}`; }
         }
 
-        function settleMonth() {
-            if(confirm('האם סגרתם את החודש בהעברה בנקאית/ביט?')) {
-                db.ref('budget/settlements/' + currentMonthKey).set(true); showAlert('החודש נסגר בהצלחה!');
-            }
-        }
+        function settleMonth() { if(confirm('האם אתם בטוחים שביצעתם העברה וסגרתם את החודש?')) { db.ref('budget/settlements/' + currentMonthKey).set(true); showAlert('החודש נסגר בהצלחה! המאזן אופס.'); } }
 
         function populateReportSelector() {
-            const selector = document.getElementById('report-month-selector');
-            const currentVal = selector.value; selector.innerHTML = '';
+            const selector = document.getElementById('report-month-selector'); const currentVal = selector.value; selector.innerHTML = '';
             const monthsSet = new Set(); monthsSet.add(currentMonthKey);
-            for (let id in allExpenses) monthsSet.add(allExpenses[id].monthKey);
-            Array.from(monthsSet).sort().reverse().forEach(m => {
-                const [y, mm] = m.split('-'); const names = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
-                const option = document.createElement('option'); option.value = m; option.innerText = `${names[parseInt(mm)-1]} ${y}`;
-                if(m === currentMonthKey) option.innerText += ' (נוכחי)';
-                selector.appendChild(option);
+            for (let id in allExpenses) { monthsSet.add(allExpenses[id].monthKey); }
+            const sortedMonths = Array.from(monthsSet).sort().reverse(); 
+            sortedMonths.forEach(m => {
+                const [y, mm] = m.split('-'); const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+                const option = document.createElement('option'); option.value = m; option.innerText = `${monthNames[parseInt(mm)-1]} ${y}`;
+                if(m === currentMonthKey) option.innerText += ' (נוכחי)'; selector.appendChild(option);
             });
-            if(currentVal && Array.from(monthsSet).includes(currentVal)) selector.value = currentVal;
+            if(currentVal && sortedMonths.includes(currentVal)) { selector.value = currentVal; }
         }
 
+        // --- NEW: Generate Report with Accordion Details ---
         function generateReport() {
-            const m = document.getElementById('report-month-selector').value; const c = document.getElementById('report-container');
-            if(!m) return; const t = getMonthTotals(m);
-            if (t.total === 0) return c.innerHTML = '<div class="glass-panel" style="padding:20px; text-align:center;">אין נתונים לחודש זה.</div>';
-            
-            const catT = {}; for(let k in catNames) catT[k] = 0;
-            Object.values(allExpenses).forEach(e => { if(e.monthKey === m) catT[e.category] = (catT[e.category]||0) + e.amount; });
+            const selectedMonth = document.getElementById('report-month-selector').value;
+            const container = document.getElementById('report-container');
+            if(!selectedMonth) return;
 
-            let html = `<div class="glass-panel" style="padding: 20px; margin-bottom: 20px; text-align: center;"><div style="font-size: 0.9rem; color: var(--text-gray); font-weight:800;">סה"כ הוצאות בחודש זה</div><div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-blue);">₪${t.total.toLocaleString()}</div><div style="margin-top:10px; font-size: 0.95rem; color: #555;">אלירן: ₪${t.eliran.toLocaleString()} | דרור: ₪${t.dror.toLocaleString()}</div></div><div class="glass-panel" style="padding: 25px 20px;"><h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 20px; font-weight:800;">התפלגות לפי קטגוריות:</h3>`;
-            Object.keys(catT).sort((a,b) => catT[b]-catT[a]).forEach(cat => {
-                if(catT[cat] > 0) {
-                    const p = Math.round((catT[cat]/t.total)*100);
-                    html += `<div class="report-cat"><div class="report-cat-header"><span>${catIcons[cat]} ${catNames[cat]}</span><span>₪${catT[cat].toLocaleString()} (${p}%)</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${p}%;"></div></div></div>`;
+            const totals = getMonthTotals(selectedMonth);
+            
+            if (totals.total === 0) {
+                container.innerHTML = '<div class="glass-panel" style="padding: 20px; text-align: center; color: var(--text-gray);">אין נתונים לחודש זה.</div>';
+                return;
+            }
+
+            const catTotals = {};
+            const catItems = {}; // שומר את הפריטים הספציפיים לכל קטגוריה
+            for(let key in catNames) { catTotals[key] = 0; catItems[key] = []; }
+
+            Object.values(allExpenses).forEach(exp => {
+                if(exp.monthKey === selectedMonth) {
+                    catTotals[exp.category] = (catTotals[exp.category] || 0) + exp.amount;
+                    if(!catItems[exp.category]) catItems[exp.category] = [];
+                    catItems[exp.category].push(exp);
                 }
             });
-            c.innerHTML = html + `</div>`;
+
+            let html = `
+                <div class="glass-panel" style="padding: 20px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 0.9rem; color: var(--text-gray); font-weight:800;">סה"כ הוצאות בחודש זה</div>
+                    <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-blue);">₪${totals.total.toLocaleString()}</div>
+                    <div style="margin-top:10px; font-size: 0.95rem; color: #555;">
+                        אלירן: ₪${totals.eliran.toLocaleString()} | דרור: ₪${totals.dror.toLocaleString()}
+                    </div>
+                </div>
+                <div class="glass-panel" style="padding: 25px 20px;">
+                    <h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 20px; font-weight:800;">התפלגות לפי קטגוריות:</h3>
+            `;
+
+            Object.keys(catTotals).sort((a,b) => catTotals[b] - catTotals[a]).forEach(cat => {
+                if (catTotals[cat] > 0) {
+                    const percent = Math.round((catTotals[cat] / totals.total) * 100);
+                    
+                    // בניה של הפריטים בתוך הקטגוריה
+                    catItems[cat].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    let itemsHtml = '';
+                    catItems[cat].forEach(item => {
+                        const dateFormatted = item.date.split('-').reverse().join('/');
+                        const payerName = item.payer === 'eliran' ? 'אלירן' : 'דרור';
+                        itemsHtml += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-dark);">${item.title}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-gray);">${dateFormatted} • ע"י ${payerName}</div>
+                                </div>
+                                <div style="font-weight: 800; color: var(--primary-blue);">₪${item.amount.toLocaleString()}</div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                        <div class="report-cat">
+                            <div class="report-cat-header" style="cursor: pointer; padding: 5px 0;" onclick="toggleCatDetails('${cat}')">
+                                <span>${catIcons[cat]} ${catNames[cat]} <span style="font-size:0.75rem; color:var(--text-gray); margin-right:5px; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:10px;">▼ פירוט</span></span>
+                                <span>₪${catTotals[cat].toLocaleString()} (${percent}%)</span>
+                            </div>
+                            <div class="progress-bar-bg" style="cursor: pointer;" onclick="toggleCatDetails('${cat}')">
+                                <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                            </div>
+                            
+                            <!-- אזור הפירוט הנסתר -->
+                            <div id="cat-details-${cat}" style="display: none; background: rgba(255,255,255,0.6); padding: 5px 15px; border-radius: 12px; margin-top: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        // פונקציית פתיחה/סגירה של הפירוט (אקורדיון)
+        function toggleCatDetails(cat) {
+            const detailsDiv = document.getElementById('cat-details-' + cat);
+            if (detailsDiv.style.display === 'none') {
+                detailsDiv.style.display = 'block';
+                detailsDiv.style.animation = 'slideFadeIn 0.3s ease-out';
+            } else {
+                detailsDiv.style.display = 'none';
+            }
         }
     </script>
 </body>
