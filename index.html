@@ -131,12 +131,19 @@
             <!-- Tab 1: Dashboard -->
             <div id="tab-dash" class="tab-content active">
                 <div id="dash-settled-banner" class="settled-banner">✅ החודש הזה נסגר והתקזזתם בהצלחה!</div>
-                <div class="glass-panel dash-card"><div class="dash-title">סה"כ הוצאות משותפות החודש</div><div class="dash-amount" id="dash-total">₪0</div></div>
-                <div class="glass-panel dash-card" style="display: flex; gap: 10px; padding: 15px;">
-                    <div style="flex:1; border-left: 1px solid rgba(0,0,0,0.1);"><div style="font-size: 0.85rem; color: var(--text-gray); font-weight:800;">אלירן שילם</div><div style="font-size: 1.3rem; font-weight:800; color:var(--text-dark);" id="dash-eliran">₪0</div></div>
-                    <div style="flex:1;"><div style="font-size: 0.85rem; color: var(--text-gray); font-weight:800;">דרור שילם/ה</div><div style="font-size: 1.3rem; font-weight:800; color:var(--text-dark);" id="dash-dror">₪0</div></div>
+                <div class="glass-panel dash-card">
+                    <div class="dash-title">סה"כ הוצאות משותפות החודש</div>
+                    <div class="dash-amount" id="dash-total">₪0</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 5px;">(לא כולל חובות עבר)</div>
                 </div>
-                <div class="glass-panel dash-card"><div class="dash-title">מצב הקיזוז הנוכחי:</div><div class="dash-amount" id="dash-balance" style="font-size: 1.8rem;">מאוזן לגמרי</div></div>
+                <div class="glass-panel dash-card" style="display: flex; gap: 10px; padding: 15px;">
+                    <div style="flex:1; border-left: 1px solid rgba(0,0,0,0.1);"><div style="font-size: 0.85rem; color: var(--text-gray); font-weight:800;">אלירן שילם (החודש)</div><div style="font-size: 1.3rem; font-weight:800; color:var(--text-dark);" id="dash-eliran">₪0</div></div>
+                    <div style="flex:1;"><div style="font-size: 0.85rem; color: var(--text-gray); font-weight:800;">דרור שילם/ה (החודש)</div><div style="font-size: 1.3rem; font-weight:800; color:var(--text-dark);" id="dash-dror">₪0</div></div>
+                </div>
+                <div class="glass-panel dash-card" style="border: 2px solid var(--light-blue);">
+                    <div class="dash-title" style="color: var(--primary-blue); font-weight: 800;">מאזן חובות כולל פתוח (מכל הזמנים):</div>
+                    <div class="dash-amount" id="dash-balance" style="font-size: 1.8rem;">מאוזן לגמרי</div>
+                </div>
                 <button class="btn btn-primary" onclick="switchTab('add', document.getElementById('nav-add'))" id="btn-quick-add" style="margin-top: 20px;">+ הוסף הוצאה</button>
             </div>
 
@@ -182,12 +189,12 @@
 
             <!-- Tab 3: Settlement -->
             <div id="tab-balance" class="tab-content">
-                <h2>⚖️ מאזן וקיזוז חודשי</h2>
+                <h2>⚖️ מאזן וקיזוז (חובות פתוחים)</h2>
                 <div class="glass-panel" style="padding: 25px 20px; text-align: center; margin-bottom: 25px;">
-                    <div style="font-size: 1.1rem; color: var(--text-gray); font-weight: 800; margin-bottom: 10px;">מי חייב למי כדי להתאזן?</div>
+                    <div style="font-size: 1.1rem; color: var(--text-gray); font-weight: 800; margin-bottom: 10px;">סך כל החובות הפתוחים (כולל חודשים קודמים):</div>
                     <div id="settle-text" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 25px; line-height: 1.3;">...</div>
-                    <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 20px;">העברתם את הכסף? לחצו כאן כדי לאפס ולסגור חודש.</p>
-                    <button id="btn-settle" class="btn btn-success" onclick="settleMonth()">💰 ביצענו קיזוז! סגור חודש</button>
+                    <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 20px;">לחיצה כאן תאפס את כל החובות מכל החודשים הפתוחים עד היום.</p>
+                    <button id="btn-settle" class="btn btn-success" onclick="settleAllOpenMonths()">💰 ביצענו קיזוז! סגור את כל החובות הפתוחים</button>
                 </div>
             </div>
 
@@ -269,7 +276,7 @@
 
         // --- Core Expense Logic (Updated for Installments) ---
         function addExpense() {
-            if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי כבר נסגר. לא ניתן להוסיף הוצאות.');
+            if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי כבר נסגר בקיזוז. לא ניתן להוסיף הוצאות חדשות.');
 
             const title = document.getElementById('exp-title').value.trim();
             const amount = parseFloat(document.getElementById('exp-amount').value);
@@ -376,11 +383,112 @@
         function renderSettingsSubscriptions() { const container = document.getElementById('subscriptions-list'); container.innerHTML = ''; if(Object.keys(subscriptions).length === 0) { container.innerHTML = '<div style="padding:15px; text-align:center;">אין הוצאות קבועות מוגדרות.</div>'; return; } for(let id in subscriptions) { const sub = subscriptions[id]; const amtText = sub.amount ? `₪${sub.amount}` : 'משתנה'; const icon = catIcons[sub.category] || '💸'; container.innerHTML += `<div class="expense-item" style="padding:12px 15px;"><div class="expense-icon" style="width:40px; height:40px; font-size:1.4rem;">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${sub.title}</div><div class="expense-amount" style="font-size:1rem; color:var(--text-gray);">${amtText}</div></div></div><button class="action-icon-btn delete" onclick="deleteSubscription('${id}')">🗑️</button></div>`; } }
 
         // --- Dash & Lists ---
-        function getMonthTotals(monthKey) { let eliran = 0; let dror = 0; for (let id in allExpenses) { const exp = allExpenses[id]; if (exp.monthKey === monthKey) { if (exp.payer === 'eliran') eliran += exp.amount; if (exp.payer === 'dror') dror += exp.amount; } } return { eliran, dror, total: eliran + dror }; }
-        function updateDashboard() { const totals = getMonthTotals(currentMonthKey); document.getElementById('dash-total').innerText = '₪' + totals.total.toLocaleString(); document.getElementById('dash-eliran').innerText = '₪' + totals.eliran.toLocaleString(); document.getElementById('dash-dror').innerText = '₪' + totals.dror.toLocaleString(); const balEl = document.getElementById('dash-balance'); balEl.classList.remove('owed', 'credit'); if (totals.eliran === totals.dror) { balEl.innerText = "מאוזן לגמרי (0₪)"; } else if (totals.eliran > totals.dror) { const owe = (totals.eliran - totals.dror) / 2; balEl.innerText = `דרור חייב/ת לאלירן ₪${owe.toLocaleString()}`; balEl.classList.add('credit'); } else { const owe = (totals.dror - totals.eliran) / 2; balEl.innerText = `אלירן חייב לדרור ₪${owe.toLocaleString()}`; balEl.classList.add('owed'); } const isSettled = settlements[currentMonthKey] === true; document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none'; document.getElementById('checklist-container').style.display = isSettled ? 'none' : 'block'; document.getElementById('add-expense-form').style.display = isSettled ? 'none' : 'block'; }
+        
+        // פונקציה המחזירה סכומים לחודש *ספציפי* (עבור תצוגת דשבורד חודשית)
+        function getMonthTotals(monthKey) { 
+            let eliran = 0; let dror = 0; 
+            for (let id in allExpenses) { 
+                const exp = allExpenses[id]; 
+                if (exp.monthKey === monthKey) { 
+                    if (exp.payer === 'eliran') eliran += exp.amount; 
+                    if (exp.payer === 'dror') dror += exp.amount; 
+                } 
+            } 
+            return { eliran, dror, total: eliran + dror }; 
+        }
+
+        // פונקציה חדשה: מחשבת את כל החובות מכל החודשים ש*טרם סוגרו*
+        function getGlobalOpenBalance() {
+            let eliranPaid = 0;
+            let drorPaid = 0;
+            
+            for (let id in allExpenses) {
+                const exp = allExpenses[id];
+                // בודק אם החודש של ההוצאה הזו טרם קוזז (לא קיים או שווה false בטבלת ה-settlements)
+                // ומכליל רק הוצאות עד החודש הנוכחי (שלא יחשב תשלומים עתידיים שעוד לא הגענו אליהם)
+                if (!settlements[exp.monthKey] && exp.monthKey <= currentMonthKey) {
+                    if (exp.payer === 'eliran') eliranPaid += exp.amount;
+                    if (exp.payer === 'dror') drorPaid += exp.amount;
+                }
+            }
+            return { eliranPaid, drorPaid };
+        }
+
+        function updateDashboard() { 
+            // נתונים לחודש הנוכחי בלבד (שורה עליונה)
+            const currentMonthTotals = getMonthTotals(currentMonthKey); 
+            document.getElementById('dash-total').innerText = '₪' + currentMonthTotals.total.toLocaleString(); 
+            document.getElementById('dash-eliran').innerText = '₪' + currentMonthTotals.eliran.toLocaleString(); 
+            document.getElementById('dash-dror').innerText = '₪' + currentMonthTotals.dror.toLocaleString(); 
+
+            // חישוב המאזן הגלובלי (מכל החודשים הפתוחים)
+            const openBalance = getGlobalOpenBalance();
+            const balEl = document.getElementById('dash-balance'); 
+            balEl.classList.remove('owed', 'credit'); 
+            
+            if (Math.abs(openBalance.eliranPaid - openBalance.drorPaid) < 0.01) { 
+                balEl.innerText = "מאוזן לגמרי (0₪)"; 
+            } else if (openBalance.eliranPaid > openBalance.drorPaid) { 
+                const owe = (openBalance.eliranPaid - openBalance.drorPaid) / 2; 
+                balEl.innerText = `דרור חייב/ת לאלירן ₪${owe.toLocaleString()}`; 
+                balEl.classList.add('credit'); 
+            } else { 
+                const owe = (openBalance.drorPaid - openBalance.eliranPaid) / 2; 
+                balEl.innerText = `אלירן חייב לדרור ₪${owe.toLocaleString()}`; 
+                balEl.classList.add('owed'); 
+            } 
+
+            // הצגת באנר חודש סגור
+            const isSettled = settlements[currentMonthKey] === true; 
+            document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none'; 
+            document.getElementById('checklist-container').style.display = isSettled ? 'none' : 'block'; 
+            document.getElementById('add-expense-form').style.display = isSettled ? 'none' : 'block'; 
+        }
+
         function renderExpensesList() { const container = document.getElementById('expenses-list'); container.innerHTML = ''; const currentExpenses = Object.values(allExpenses).filter(exp => exp.monthKey === currentMonthKey).sort((a, b) => b.timestamp - a.timestamp); if (currentExpenses.length === 0) { container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-gray);">אין הוצאות החודש עדיין.</div>'; return; } currentExpenses.forEach(exp => { const payerName = exp.payer === 'eliran' ? 'אלירן' : 'דרור'; const dateFormatted = exp.date.split('-').reverse().join('/'); const icon = catIcons[exp.category] || '💸'; const div = document.createElement('div'); div.className = 'expense-item'; div.innerHTML = `<div class="expense-icon">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${exp.title}</div><div class="expense-amount">₪${exp.amount.toLocaleString()}</div></div><div class="expense-meta-row"><div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div><div class="expense-actions"><button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button><button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button></div></div></div>`; container.appendChild(div); }); }
-        function updateSettlementTab() { const totals = getMonthTotals(currentMonthKey); const textEl = document.getElementById('settle-text'); const btnEl = document.getElementById('btn-settle'); if (settlements[currentMonthKey]) { textEl.innerHTML = "<span style='color: var(--success);'>החודש סגור ומאוזן! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>התקזזתם על חודש זה ואין חובות.</span>"; btnEl.style.display = 'none'; return; } btnEl.style.display = 'block'; if (totals.eliran === totals.dror) { textEl.innerText = "אתם מאוזנים לגמרי!\nאפס חובות."; btnEl.style.display = 'none'; } else if (totals.eliran > totals.dror) { const owe = (totals.eliran - totals.dror) / 2; textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`; } else { const owe = (totals.dror - totals.eliran) / 2; textEl.innerText = `אלירן צריך להעביר לדרור:\n₪${owe.toLocaleString()}`; } }
-        function settleMonth() { if(confirm('האם אתם בטוחים שביצעתם העברה וסגרתם את החודש?')) { db.ref('budget/settlements/' + currentMonthKey).set(true); showAlert('החודש נסגר בהצלחה! המאזן אופס.'); } }
+        
+        function updateSettlementTab() { 
+            const openBalance = getGlobalOpenBalance();
+            const textEl = document.getElementById('settle-text'); 
+            const btnEl = document.getElementById('btn-settle'); 
+            
+            // בודק האם יש בכלל חובות פתוחים מאיזשהו חודש בעבר או בהווה
+            if (Math.abs(openBalance.eliranPaid - openBalance.drorPaid) < 0.01) { 
+                textEl.innerHTML = "<span style='color: var(--success);'>אתם מאוזנים לגמרי! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>אפס חובות פתוחים מכל הזמנים.</span>"; 
+                btnEl.style.display = 'none'; 
+            } else if (openBalance.eliranPaid > openBalance.drorPaid) { 
+                const owe = (openBalance.eliranPaid - openBalance.drorPaid) / 2; 
+                textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`; 
+                btnEl.style.display = 'block';
+            } else { 
+                const owe = (openBalance.drorPaid - openBalance.eliranPaid) / 2; 
+                textEl.innerText = `אלירן צריך להעביר לדרור:\n₪${owe.toLocaleString()}`; 
+                btnEl.style.display = 'block';
+            } 
+        }
+
+        // פונקציה חדשה לסגירת *כל* החודשים הפתוחים עד היום
+        function settleAllOpenMonths() { 
+            if(confirm('לחיצה זו תסגור את כל החודשים הפתוחים עד היום ותאפס את כל החובות. האם ביצעתם העברה ואתם מאוזנים?')) { 
+                // רץ על כל ההוצאות ומוצא את כל החודשים הפתוחים עד היום
+                const monthsToSettle = new Set();
+                for (let id in allExpenses) {
+                    if (allExpenses[id].monthKey <= currentMonthKey) {
+                        monthsToSettle.add(allExpenses[id].monthKey);
+                    }
+                }
+                
+                // סוגר את כולם במסד הנתונים
+                const updates = {};
+                monthsToSettle.forEach(month => {
+                    updates[month] = true;
+                });
+                
+                db.ref('budget/settlements').update(updates).then(() => {
+                    showAlert('המאזן אופס בהצלחה! כל החודשים עד היום סגורים.');
+                });
+            } 
+        }
 
         function populateReportSelector() { const selector = document.getElementById('report-month-selector'); const currentVal = selector.value; selector.innerHTML = ''; const monthsSet = new Set(); monthsSet.add(currentMonthKey); for (let id in allExpenses) { monthsSet.add(allExpenses[id].monthKey); } const sortedMonths = Array.from(monthsSet).sort().reverse(); sortedMonths.forEach(m => { const [y, mm] = m.split('-'); const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]; const option = document.createElement('option'); option.value = m; option.innerText = `${monthNames[parseInt(mm)-1]} ${y}`; if(m === currentMonthKey) option.innerText += ' (נוכחי)'; selector.appendChild(option); }); if(currentVal && sortedMonths.includes(currentVal)) { selector.value = currentVal; } }
 
