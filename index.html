@@ -235,12 +235,21 @@
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script> <!-- הוספנו את מערכת האימות של פיירבייס -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 
     <script>
         // --- Firebase Setup ---
         const firebaseConfig = { apiKey: "AIzaSyDQdVZy5STaT7oOlzXcH2NbN6eoAIyWNSI", authDomain: "home-budget-app-4d311.firebaseapp.com", databaseURL: "https://home-budget-app-4d311-default-rtdb.europe-west1.firebasedatabase.app", projectId: "home-budget-app-4d311", storageBucket: "home-budget-app-4d311.firebasestorage.app", messagingSenderId: "96787067118", appId: "1:96787067118:web:13c2ce5aa7872d193983ff" };
-        firebase.initializeApp(firebaseConfig); const db = firebase.database();
+        firebase.initializeApp(firebaseConfig); 
+        
+        // --- קסם ההתחברות האנונימית ---
+        firebase.auth().signInAnonymously().catch((error) => {
+            console.error("שגיאה בהתחברות השקטה:", error);
+        });
+        
+        const db = firebase.database();
+        firebase.database().goOnline();
 
         function checkPin() { const pin = document.getElementById('pin-input').value; if (pin === "1981") { sessionStorage.setItem('budget_unlocked', 'true'); document.getElementById('locked-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; initApp(); } else { document.getElementById('pin-error').style.display = 'block'; document.getElementById('pin-input').value = ''; } }
         document.getElementById('pin-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') { checkPin(); this.blur(); } });
@@ -384,7 +393,6 @@
 
         // --- Dash & Lists ---
         
-        // פונקציה המחזירה סכומים לחודש *ספציפי* (עבור תצוגת דשבורד חודשית)
         function getMonthTotals(monthKey) { 
             let eliran = 0; let dror = 0; 
             for (let id in allExpenses) { 
@@ -397,15 +405,12 @@
             return { eliran, dror, total: eliran + dror }; 
         }
 
-        // פונקציה חדשה: מחשבת את כל החובות מכל החודשים ש*טרם סוגרו*
         function getGlobalOpenBalance() {
             let eliranPaid = 0;
             let drorPaid = 0;
             
             for (let id in allExpenses) {
                 const exp = allExpenses[id];
-                // בודק אם החודש של ההוצאה הזו טרם קוזז (לא קיים או שווה false בטבלת ה-settlements)
-                // ומכליל רק הוצאות עד החודש הנוכחי (שלא יחשב תשלומים עתידיים שעוד לא הגענו אליהם)
                 if (!settlements[exp.monthKey] && exp.monthKey <= currentMonthKey) {
                     if (exp.payer === 'eliran') eliranPaid += exp.amount;
                     if (exp.payer === 'dror') drorPaid += exp.amount;
@@ -415,13 +420,11 @@
         }
 
         function updateDashboard() { 
-            // נתונים לחודש הנוכחי בלבד (שורה עליונה)
             const currentMonthTotals = getMonthTotals(currentMonthKey); 
             document.getElementById('dash-total').innerText = '₪' + currentMonthTotals.total.toLocaleString(); 
             document.getElementById('dash-eliran').innerText = '₪' + currentMonthTotals.eliran.toLocaleString(); 
             document.getElementById('dash-dror').innerText = '₪' + currentMonthTotals.dror.toLocaleString(); 
 
-            // חישוב המאזן הגלובלי (מכל החודשים הפתוחים)
             const openBalance = getGlobalOpenBalance();
             const balEl = document.getElementById('dash-balance'); 
             balEl.classList.remove('owed', 'credit'); 
@@ -438,7 +441,6 @@
                 balEl.classList.add('owed'); 
             } 
 
-            // הצגת באנר חודש סגור
             const isSettled = settlements[currentMonthKey] === true; 
             document.getElementById('dash-settled-banner').style.display = isSettled ? 'block' : 'none'; 
             document.getElementById('checklist-container').style.display = isSettled ? 'none' : 'block'; 
@@ -452,7 +454,6 @@
             const textEl = document.getElementById('settle-text'); 
             const btnEl = document.getElementById('btn-settle'); 
             
-            // בודק האם יש בכלל חובות פתוחים מאיזשהו חודש בעבר או בהווה
             if (Math.abs(openBalance.eliranPaid - openBalance.drorPaid) < 0.01) { 
                 textEl.innerHTML = "<span style='color: var(--success);'>אתם מאוזנים לגמרי! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>אפס חובות פתוחים מכל הזמנים.</span>"; 
                 btnEl.style.display = 'none'; 
@@ -467,10 +468,8 @@
             } 
         }
 
-        // פונקציה חדשה לסגירת *כל* החודשים הפתוחים עד היום
         function settleAllOpenMonths() { 
             if(confirm('לחיצה זו תסגור את כל החודשים הפתוחים עד היום ותאפס את כל החובות. האם ביצעתם העברה ואתם מאוזנים?')) { 
-                // רץ על כל ההוצאות ומוצא את כל החודשים הפתוחים עד היום
                 const monthsToSettle = new Set();
                 for (let id in allExpenses) {
                     if (allExpenses[id].monthKey <= currentMonthKey) {
@@ -478,7 +477,6 @@
                     }
                 }
                 
-                // סוגר את כולם במסד הנתונים
                 const updates = {};
                 monthsToSettle.forEach(month => {
                     updates[month] = true;
