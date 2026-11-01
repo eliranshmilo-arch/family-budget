@@ -189,12 +189,28 @@
 
             <!-- Tab 3: Settlement -->
             <div id="tab-balance" class="tab-content">
-                <h2>⚖️ מאזן וקיזוז (חובות פתוחים)</h2>
-                <div class="glass-panel" style="padding: 25px 20px; text-align: center; margin-bottom: 25px;">
-                    <div style="font-size: 1.1rem; color: var(--text-gray); font-weight: 800; margin-bottom: 10px;">סך כל החובות הפתוחים (כולל חודשים קודמים):</div>
-                    <div id="settle-text" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-blue); margin-bottom: 25px; line-height: 1.3;">...</div>
-                    <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 20px;">לחיצה כאן תאפס את כל החובות מכל החודשים הפתוחים עד היום.</p>
-                    <button id="btn-settle" class="btn btn-success" onclick="settleAllOpenMonths()">💰 ביצענו קיזוז! סגור את כל החובות הפתוחים</button>
+                <h2>⚖️ מאזן וקיזוז (חובות)</h2>
+
+                <!-- חוב פתוח מכל הזמנים -->
+                <div class="glass-panel dash-card" style="border: 2px solid var(--light-blue); margin-bottom: 25px;">
+                    <div class="dash-title" style="color: var(--primary-blue); font-weight: 800; font-size:1.1rem;">סך כל החובות הפתוחים (מכל הזמנים):</div>
+                    <div class="dash-amount" id="global-settle-text" style="font-size: 1.8rem; margin-top: 10px; line-height: 1.3;">טוען...</div>
+                </div>
+
+                <!-- קיזוז פרטני לחודש -->
+                <div class="glass-panel" style="padding: 20px; text-align: center; margin-bottom: 25px;">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label style="font-size: 1.1rem; color: var(--primary-blue);">בחר חודש לקיזוז:</label>
+                        <select id="settle-month-selector" onchange="updateSettlementTab()" style="font-size: 1.1rem; padding: 10px;"></select>
+                    </div>
+                    
+                    <div id="monthly-settle-details" style="padding: 15px; background: rgba(255,255,255,0.5); border-radius: 12px; margin-bottom: 15px;">
+                        <div id="monthly-settle-status" style="font-size: 1.1rem; color: var(--text-gray); font-weight: 800; margin-bottom: 10px;">סטטוס: ...</div>
+                        <div id="monthly-settle-text" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dark); margin-bottom: 10px; line-height: 1.3;">...</div>
+                    </div>
+                    
+                    <p id="settle-instructions" style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 20px;">העברתם את הכסף לחודש הנבחר? לחצו כאן כדי לסגור אותו.</p>
+                    <button id="btn-settle-month" class="btn btn-success" onclick="settleSpecificMonth()">💰 ביצענו קיזוז! סגור חודש זה</button>
                 </div>
             </div>
 
@@ -235,7 +251,7 @@
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script> <!-- הוספנו את מערכת האימות של פיירבייס -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 
     <script>
@@ -269,11 +285,13 @@
             db.ref('budget').on('value', (snapshot) => {
                 const data = snapshot.val() || {}; allExpenses = data.expenses || {}; settlements = data.settlements || {};
                 if (!data.subscriptions) { db.ref('budget/subscriptions').set(defaultSubscriptions); subscriptions = defaultSubscriptions; } else { subscriptions = data.subscriptions; }
-                updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab(); populateReportSelector();
+                populateReportSelector();
+                populateSettleSelector(); // תפריט גלילה לעמוד הקיזוז
+                updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab(); 
             });
         }
 
-        function switchTab(tabId, btnElement) { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); document.getElementById('tab-' + tabId).classList.add('active'); if(btnElement) btnElement.classList.add('active'); document.querySelector('main').scrollTop = 0; if(tabId === 'reports') generateReport(); }
+        function switchTab(tabId, btnElement) { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); document.getElementById('tab-' + tabId).classList.add('active'); if(btnElement) btnElement.classList.add('active'); document.querySelector('main').scrollTop = 0; if(tabId === 'reports') generateReport(); if(tabId === 'balance') updateSettlementTab(); }
         function showAlert(msg) { document.getElementById('modalMessage').innerText = msg; document.getElementById('customModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('customModal').style.display = 'none'; }
 
@@ -283,9 +301,9 @@
             document.getElementById('installments-group').style.display = isChecked ? 'block' : 'none';
         }
 
-        // --- Core Expense Logic (Updated for Installments) ---
+        // --- Core Expense Logic ---
         function addExpense() {
-            if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי כבר נסגר בקיזוז. לא ניתן להוסיף הוצאות חדשות.');
+            if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי כבר נסגר בקיזוז. לא ניתן להוסיף הוצאות חדשות.\n(ניתן לפתוח אותו מחדש בלשונית הקיזוז).');
 
             const title = document.getElementById('exp-title').value.trim();
             const amount = parseFloat(document.getElementById('exp-amount').value);
@@ -298,7 +316,6 @@
 
             if (!title || isNaN(amount) || amount <= 0 || !date) return showAlert('יש למלא את כל השדות בצורה תקינה.');
 
-            // מצב עריכה
             if (currentEditId) {
                 const expenseMonthKey = date.substring(0, 7); 
                 if (settlements[expenseMonthKey]) return showAlert('החודש אליו שייך התאריך הזה כבר סגור.');
@@ -308,11 +325,9 @@
                 return;
             }
 
-            // מצב תשלומים חדש
             if (isInstallment) {
                 if (isNaN(installments) || installments < 2) return showAlert('יש להזין מספר תשלומים תקין (מינימום 2).');
                 
-                // ולידציה שחודשי העתיד אינם סגורים
                 for(let i=0; i<installments; i++) {
                     let d = new Date(date); d.setMonth(d.getMonth() + i);
                     let y = d.getFullYear(); let m = String(d.getMonth() + 1).padStart(2, '0');
@@ -334,8 +349,6 @@
                     db.ref('budget/expenses/' + instId).set({ id: instId, title: instTitle, amount: amountPerInstallment, date: instDateStr, payer: payer, category: category, monthKey: instMonthKey, linkedSubId: linkedSubId, timestamp: baseTime + i });
                 }
                 showSuccessAndShare(title, amount, payer, installments);
-
-            // מצב הוצאה רגילה חדשה
             } else {
                 const expenseMonthKey = date.substring(0, 7); 
                 if (settlements[expenseMonthKey]) return showAlert('החודש אליו שייך התאריך הזה כבר סגור.');
@@ -372,7 +385,6 @@
             const exp = allExpenses[id]; if(!exp) return; if (settlements[exp.monthKey]) return showAlert('לא ניתן לערוך הוצאה מחודש סגור.');
             document.getElementById('exp-title').value = exp.title; document.getElementById('exp-amount').value = exp.amount; document.getElementById('exp-date').value = exp.date; document.getElementById('exp-payer').value = exp.payer; document.getElementById('exp-category').value = exp.category;
             
-            // בעת עריכה, נסתיר את אופציית הפריסה לתשלומים כדי לא לסבך היסטוריה
             document.getElementById('installment-wrapper').style.display = 'none';
             currentEditId = id; document.getElementById('btn-save-exp').innerText = "💾 שמור שינויים"; document.querySelector('main').scrollTop = 0;
         }
@@ -392,7 +404,6 @@
         function renderSettingsSubscriptions() { const container = document.getElementById('subscriptions-list'); container.innerHTML = ''; if(Object.keys(subscriptions).length === 0) { container.innerHTML = '<div style="padding:15px; text-align:center;">אין הוצאות קבועות מוגדרות.</div>'; return; } for(let id in subscriptions) { const sub = subscriptions[id]; const amtText = sub.amount ? `₪${sub.amount}` : 'משתנה'; const icon = catIcons[sub.category] || '💸'; container.innerHTML += `<div class="expense-item" style="padding:12px 15px;"><div class="expense-icon" style="width:40px; height:40px; font-size:1.4rem;">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${sub.title}</div><div class="expense-amount" style="font-size:1rem; color:var(--text-gray);">${amtText}</div></div></div><button class="action-icon-btn delete" onclick="deleteSubscription('${id}')">🗑️</button></div>`; } }
 
         // --- Dash & Lists ---
-        
         function getMonthTotals(monthKey) { 
             let eliran = 0; let dror = 0; 
             for (let id in allExpenses) { 
@@ -408,7 +419,6 @@
         function getGlobalOpenBalance() {
             let eliranPaid = 0;
             let drorPaid = 0;
-            
             for (let id in allExpenses) {
                 const exp = allExpenses[id];
                 if (!settlements[exp.monthKey] && exp.monthKey <= currentMonthKey) {
@@ -449,43 +459,97 @@
 
         function renderExpensesList() { const container = document.getElementById('expenses-list'); container.innerHTML = ''; const currentExpenses = Object.values(allExpenses).filter(exp => exp.monthKey === currentMonthKey).sort((a, b) => b.timestamp - a.timestamp); if (currentExpenses.length === 0) { container.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-gray);">אין הוצאות החודש עדיין.</div>'; return; } currentExpenses.forEach(exp => { const payerName = exp.payer === 'eliran' ? 'אלירן' : 'דרור'; const dateFormatted = exp.date.split('-').reverse().join('/'); const icon = catIcons[exp.category] || '💸'; const div = document.createElement('div'); div.className = 'expense-item'; div.innerHTML = `<div class="expense-icon">${icon}</div><div class="expense-content"><div class="expense-title-row"><div class="expense-title">${exp.title}</div><div class="expense-amount">₪${exp.amount.toLocaleString()}</div></div><div class="expense-meta-row"><div class="expense-meta">${dateFormatted} • ע"י: <strong>${payerName}</strong></div><div class="expense-actions"><button class="action-icon-btn edit" onclick="editExpense('${exp.id}')" title="ערוך">✏️</button><button class="action-icon-btn delete" onclick="deleteExpense('${exp.id}')" title="מחק">🗑️</button></div></div></div>`; container.appendChild(div); }); }
         
+        // --- Settlement Tab Logic ---
+        function populateSettleSelector() { 
+            const selector = document.getElementById('settle-month-selector'); 
+            const currentVal = selector.value; 
+            selector.innerHTML = ''; 
+            const monthsSet = new Set(); 
+            monthsSet.add(currentMonthKey); 
+            for (let id in allExpenses) { monthsSet.add(allExpenses[id].monthKey); } 
+            const sortedMonths = Array.from(monthsSet).sort().reverse(); 
+            sortedMonths.forEach(m => { 
+                const [y, mm] = m.split('-'); 
+                const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]; 
+                const option = document.createElement('option'); 
+                option.value = m; 
+                option.innerText = `${monthNames[parseInt(mm)-1]} ${y}`; 
+                if(m === currentMonthKey) option.innerText += ' (נוכחי)'; 
+                selector.appendChild(option); 
+            }); 
+            if(currentVal && sortedMonths.includes(currentVal)) { selector.value = currentVal; } 
+        }
+
         function updateSettlementTab() { 
+            // 1. עדכון חוב מכל הזמנים
             const openBalance = getGlobalOpenBalance();
-            const textEl = document.getElementById('settle-text'); 
-            const btnEl = document.getElementById('btn-settle'); 
+            const globalTextEl = document.getElementById('global-settle-text'); 
             
             if (Math.abs(openBalance.eliranPaid - openBalance.drorPaid) < 0.01) { 
-                textEl.innerHTML = "<span style='color: var(--success);'>אתם מאוזנים לגמרי! ✅</span><br><span style='font-size:1rem; color:var(--text-gray);'>אפס חובות פתוחים מכל הזמנים.</span>"; 
-                btnEl.style.display = 'none'; 
+                globalTextEl.innerHTML = "<span style='color: var(--success);'>אתם מאוזנים לגמרי! ✅</span>"; 
             } else if (openBalance.eliranPaid > openBalance.drorPaid) { 
                 const owe = (openBalance.eliranPaid - openBalance.drorPaid) / 2; 
-                textEl.innerText = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`; 
-                btnEl.style.display = 'block';
+                globalTextEl.innerHTML = `דרור צריך/ה להעביר לאלירן:<br><span style="color:var(--danger)">₪${owe.toLocaleString()}</span>`; 
             } else { 
                 const owe = (openBalance.drorPaid - openBalance.eliranPaid) / 2; 
-                textEl.innerText = `אלירן צריך להעביר לדרור:\n₪${owe.toLocaleString()}`; 
+                globalTextEl.innerHTML = `אלירן צריך להעביר לדרור:<br><span style="color:var(--danger)">₪${owe.toLocaleString()}</span>`; 
+            } 
+
+            // 2. עדכון חוב חודשי ספציפי
+            const selectedMonth = document.getElementById('settle-month-selector').value || currentMonthKey;
+            const monthTotals = getMonthTotals(selectedMonth);
+            const monthlyTextEl = document.getElementById('monthly-settle-text');
+            const monthlyStatusEl = document.getElementById('monthly-settle-status');
+            const btnEl = document.getElementById('btn-settle-month');
+            const instEl = document.getElementById('settle-instructions');
+
+            if (settlements[selectedMonth]) {
+                monthlyStatusEl.innerHTML = "סטטוס: <span style='color: var(--success);'>סגור ומאוזן ✅</span>";
+                monthlyTextEl.innerHTML = "התקזזתם על חודש זה ואין חובות.";
+                btnEl.style.display = 'none';
+                instEl.style.display = 'block';
+                instEl.innerHTML = `<a href="#" onclick="reopenSpecificMonth('${selectedMonth}')" style="color:var(--text-gray); text-decoration:underline;">ננעל בטעות? לחץ כאן לפתיחת החודש מחדש</a>`;
+            } else {
+                monthlyStatusEl.innerHTML = "סטטוס: <span style='color: var(--danger);'>פתוח לתשלום ⏳</span>";
                 btnEl.style.display = 'block';
+                instEl.style.display = 'block';
+                instEl.innerHTML = "העברתם את הכסף לחודש הנבחר? לחצו כאן כדי לסגור אותו.";
+                
+                if (monthTotals.total === 0) {
+                    monthlyTextEl.innerHTML = "אין הוצאות לחודש זה.";
+                    btnEl.style.display = 'none';
+                    instEl.style.display = 'none';
+                } else if (monthTotals.eliran === monthTotals.dror) {
+                    monthlyTextEl.innerHTML = "בחודש זה אתם מאוזנים לגמרי.";
+                    btnEl.style.display = 'none';
+                    instEl.style.display = 'none';
+                } else if (monthTotals.eliran > monthTotals.dror) {
+                    const owe = (monthTotals.eliran - monthTotals.dror) / 2;
+                    monthlyTextEl.innerHTML = `דרור צריך/ה להעביר לאלירן:\n₪${owe.toLocaleString()}`;
+                } else {
+                    const owe = (monthTotals.dror - monthTotals.eliran) / 2;
+                    monthlyTextEl.innerHTML = `אלירן צריך להעביר לדרור:\n₪${owe.toLocaleString()}`;
+                }
+            }
+        }
+
+        function settleSpecificMonth() {
+            const selectedMonth = document.getElementById('settle-month-selector').value;
+            if(!selectedMonth) return;
+            
+            if(confirm(`האם אתם בטוחים שביצעתם העברה וסגרתם את החודש (${selectedMonth})?`)) { 
+                db.ref('budget/settlements/' + selectedMonth).set(true).then(() => {
+                    showAlert('החודש נסגר בהצלחה! המאזן אופס עבור חודש זה.');
+                });
             } 
         }
 
-        function settleAllOpenMonths() { 
-            if(confirm('לחיצה זו תסגור את כל החודשים הפתוחים עד היום ותאפס את כל החובות. האם ביצעתם העברה ואתם מאוזנים?')) { 
-                const monthsToSettle = new Set();
-                for (let id in allExpenses) {
-                    if (allExpenses[id].monthKey <= currentMonthKey) {
-                        monthsToSettle.add(allExpenses[id].monthKey);
-                    }
-                }
-                
-                const updates = {};
-                monthsToSettle.forEach(month => {
-                    updates[month] = true;
+        function reopenSpecificMonth(monthKey) {
+            if(confirm(`האם לפתוח מחדש את ${monthKey}? תוכלו לשוב ולהוסיף הוצאות לחודש זה.`)) {
+                db.ref('budget/settlements/' + monthKey).remove().then(() => {
+                    showAlert('החודש נפתח מחדש בהצלחה.');
                 });
-                
-                db.ref('budget/settlements').update(updates).then(() => {
-                    showAlert('המאזן אופס בהצלחה! כל החודשים עד היום סגורים.');
-                });
-            } 
+            }
         }
 
         function populateReportSelector() { const selector = document.getElementById('report-month-selector'); const currentVal = selector.value; selector.innerHTML = ''; const monthsSet = new Set(); monthsSet.add(currentMonthKey); for (let id in allExpenses) { monthsSet.add(allExpenses[id].monthKey); } const sortedMonths = Array.from(monthsSet).sort().reverse(); sortedMonths.forEach(m => { const [y, mm] = m.split('-'); const monthNames = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]; const option = document.createElement('option'); option.value = m; option.innerText = `${monthNames[parseInt(mm)-1]} ${y}`; if(m === currentMonthKey) option.innerText += ' (נוכחי)'; selector.appendChild(option); }); if(currentVal && sortedMonths.includes(currentVal)) { selector.value = currentVal; } }
