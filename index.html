@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ניהול תקציב משותף</title>
     <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -234,7 +236,14 @@
                     <button class="btn btn-success" onclick="addSubscription()">➕ הוסף לרשימה</button>
                 </div>
                 <h3 style="font-size: 1.1rem; color: var(--text-gray); margin-bottom: 10px; font-weight:800;">ניהול רשימת ההוצאות הקבועות</h3>
-                <div class="glass-panel" id="subscriptions-list" style="padding: 5px;"></div>
+                <div class="glass-panel" id="subscriptions-list" style="padding: 5px; margin-bottom: 25px;"></div>
+
+                <div class="glass-panel" style="padding: 20px; margin-bottom: 25px;">
+                    <h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 10px; font-weight:800;">🔔 התראה חודשית על חובות</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-gray); margin-bottom: 15px;">ב-1 לכל חודש תקבלו פוש עם סך החובות הפתוחים ומי צריך להעביר למי. יש להפעיל בכל מכשיר בנפרד.<br>באייפון: יש להוסיף קודם את האפליקציה למסך הבית (שיתוף ← "הוסף למסך הבית") ולפתוח משם.</p>
+                    <div id="push-status" style="font-size: 0.95rem; font-weight: 800; margin-bottom: 15px; color: var(--text-gray);">סטטוס: בודק...</div>
+                    <button id="btn-enable-push" class="btn btn-primary" onclick="enablePushNotifications()">🔔 הפעל התראות במכשיר זה</button>
+                </div>
             </div>
         </main>
 
@@ -253,6 +262,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js"></script>
 
     <script>
         // --- Firebase Setup ---
@@ -287,8 +297,60 @@
                 if (!data.subscriptions) { db.ref('budget/subscriptions').set(defaultSubscriptions); subscriptions = defaultSubscriptions; } else { subscriptions = data.subscriptions; }
                 populateReportSelector();
                 populateSettleSelector(); // תפריט גלילה לעמוד הקיזוז
-                updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab(); 
+                updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab();
             });
+            initPushStatus();
+        }
+
+        // --- Push Notifications (FCM) ---
+        // מפתח VAPID: Firebase Console ← Project settings ← Cloud Messaging ← Web Push certificates ← Generate key pair
+        const VAPID_KEY = "PASTE_YOUR_VAPID_KEY_HERE";
+        const PUSH_TOKEN_STORAGE = 'budget_push_token_key';
+
+        function pushSupported() {
+            return 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window && firebase.messaging.isSupported();
+        }
+
+        function setPushStatus(text, color) {
+            const el = document.getElementById('push-status');
+            el.innerText = 'סטטוס: ' + text; el.style.color = color || 'var(--text-gray)';
+        }
+
+        function initPushStatus() {
+            if (!pushSupported()) { setPushStatus('המכשיר/דפדפן לא תומך בהתראות (באייפון - פתח מהאפליקציה במסך הבית)', 'var(--danger)'); document.getElementById('btn-enable-push').style.display = 'none'; return; }
+            if (Notification.permission === 'denied') { setPushStatus('ההתראות נחסמו בהגדרות הדפדפן/המכשיר', 'var(--danger)'); return; }
+            if (Notification.permission === 'granted' && localStorage.getItem(PUSH_TOKEN_STORAGE)) {
+                setPushStatus('התראות פעילות במכשיר זה ✅', 'var(--success)');
+                document.getElementById('btn-enable-push').innerText = '🔄 רענן רישום התראות';
+                enablePushNotifications(true); // רענון שקט של הטוקן
+            } else { setPushStatus('התראות כבויות במכשיר זה'); }
+            firebase.messaging().onMessage((payload) => {
+                const n = payload.notification || {};
+                showAlert(`${n.title || ''}\n${n.body || ''}`);
+            });
+        }
+
+        async function enablePushNotifications(silent) {
+            try {
+                if (!pushSupported()) return silent || showAlert('המכשיר לא תומך בהתראות. באייפון יש להוסיף את האפליקציה למסך הבית ולפתוח משם.');
+                if (VAPID_KEY.startsWith('PASTE_')) return silent || showAlert('חסר מפתח VAPID בקוד (VAPID_KEY). יש להגדיר אותו לפני הפעלת התראות.');
+                const permission = silent ? Notification.permission : await Notification.requestPermission();
+                if (permission !== 'granted') { setPushStatus('לא אושרה הרשאה להתראות', 'var(--danger)'); return; }
+                const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+                const token = await firebase.messaging().getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+                if (!token) throw new Error('לא התקבל טוקן');
+                const key = token.replace(/[.#$\[\]\/]/g, '_').slice(-60);
+                const oldKey = localStorage.getItem(PUSH_TOKEN_STORAGE);
+                if (oldKey && oldKey !== key) db.ref('budget/pushTokens/' + oldKey).remove();
+                await db.ref('budget/pushTokens/' + key).set({ token: token, userAgent: navigator.userAgent, updatedAt: Date.now() });
+                localStorage.setItem(PUSH_TOKEN_STORAGE, key);
+                setPushStatus('התראות פעילות במכשיר זה ✅', 'var(--success)');
+                document.getElementById('btn-enable-push').innerText = '🔄 רענן רישום התראות';
+                if (!silent) showAlert('ההתראות הופעלו! תקבלו סיכום חובות ב-1 לכל חודש 🔔');
+            } catch (err) {
+                console.error('Push registration error:', err);
+                if (!silent) showAlert('שגיאה בהפעלת התראות: ' + err.message);
+            }
         }
 
         function switchTab(tabId, btnElement) { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); document.getElementById('tab-' + tabId).classList.add('active'); if(btnElement) btnElement.classList.add('active'); document.querySelector('main').scrollTop = 0; if(tabId === 'reports') generateReport(); if(tabId === 'balance') updateSettlementTab(); }

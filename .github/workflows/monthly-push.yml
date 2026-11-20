@@ -1,0 +1,23 @@
+name: Monthly debt push
+
+on:
+  schedule:
+    # 06:00 UTC ב-1 לכל חודש (08:00 שעון חורף / 09:00 שעון קיץ בישראל)
+    - cron: '0 6 1 * *'
+  workflow_dispatch: # הרצה ידנית לבדיקה מלשונית Actions
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund
+      - run: node monthly-push.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
