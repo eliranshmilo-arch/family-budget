@@ -299,6 +299,8 @@
         // --- Authentication (מייל + סיסמה) ---
         // רשימת המורשים. האכיפה האמיתית נעשית ב-Firebase Database Rules.
         const ALLOWED_EMAILS = ['eliranshmilo@gmail.com', 'deror82@gmail.com'];
+        const EMAIL_TO_PAYER = { 'eliranshmilo@gmail.com': 'eliran', 'deror82@gmail.com': 'dror' };
+        function currentPayer() { const u = firebase.auth().currentUser; return (u && EMAIL_TO_PAYER[(u.email || '').toLowerCase()]) || 'eliran'; }
         const auth = firebase.auth();
         let authMode = 'login'; let appStarted = false;
 
@@ -394,6 +396,7 @@
             document.getElementById('locked-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             document.getElementById('account-email').innerText = email;
+            document.getElementById('exp-payer').value = currentPayer();
             if (!appStarted) { appStarted = true; initApp(); }
         }
 
@@ -545,6 +548,7 @@
 
         function resetExpenseForm() {
             document.getElementById('exp-title').value = ''; document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-payer').value = currentPayer();
             document.getElementById('btn-save-exp').removeAttribute('data-linked-sub');
             document.getElementById('exp-is-installment').checked = false; document.getElementById('exp-installments').value = '';
             toggleInstallments(); currentEditId = null;
@@ -577,7 +581,7 @@
 
         // --- Smart Checklist ---
         function getPaidSubscriptionDetails(subId) { for (let expId in allExpenses) { const exp = allExpenses[expId]; if (exp.monthKey === currentMonthKey && (exp.linkedSubId === subId || exp.title === subscriptions[subId].title)) return exp; } return null; }
-        function renderSmartChecklist() { const container = document.getElementById('monthly-checklist'); container.innerHTML = ''; let html = ''; for (let subId in subscriptions) { const sub = subscriptions[subId]; const paidExp = getPaidSubscriptionDetails(subId); if (paidExp) { const payerName = paidExp.payer === 'eliran' ? 'אלירן' : 'דרור'; html += `<div class="checklist-item"><div class="cl-status-icon">✅</div><div class="cl-info"><div class="cl-title" style="text-decoration: line-through; color: var(--success);">${sub.title}</div><div class="cl-meta">שולם ע"י ${payerName} (₪${paidExp.amount})</div></div><button class="cl-btn paid">שולם</button></div>`; } else { html += `<div class="checklist-item"><div class="cl-status-icon">⏳</div><div class="cl-info"><div class="cl-title">${sub.title}</div><div class="cl-meta">${sub.amount ? `סכום משוער: ₪${sub.amount}` : 'סכום משתנה'}</div></div><button class="cl-btn" onclick="openQuickPay('${subId}')">תשלום</button></div><div id="qp-${subId}" class="quick-pay-form"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="number" id="qp-amount-${subId}" placeholder="סכום (₪)" value="${sub.amount || ''}" style="margin:0; padding:10px;"><select id="qp-payer-${subId}" style="margin:0; padding:10px;"><option value="eliran">אלירן שילם</option><option value="dror">דרור שילם/ה</option></select></div><div style="display:flex; gap:10px;"><button class="btn btn-success" style="padding:10px; flex:2;" onclick="submitQuickPay('${subId}')">💾 אישור תשלום</button><button class="btn" style="padding:10px; flex:1; background:rgba(0,0,0,0.1); color:#333;" onclick="closeQuickPay('${subId}')">ביטול</button></div></div>`; } } container.innerHTML = html; }
+        function renderSmartChecklist() { const container = document.getElementById('monthly-checklist'); container.innerHTML = ''; let html = ''; for (let subId in subscriptions) { const sub = subscriptions[subId]; const paidExp = getPaidSubscriptionDetails(subId); if (paidExp) { const payerName = paidExp.payer === 'eliran' ? 'אלירן' : 'דרור'; html += `<div class="checklist-item"><div class="cl-status-icon">✅</div><div class="cl-info"><div class="cl-title" style="text-decoration: line-through; color: var(--success);">${sub.title}</div><div class="cl-meta">שולם ע"י ${payerName} (₪${paidExp.amount})</div></div><button class="cl-btn paid">שולם</button></div>`; } else { html += `<div class="checklist-item"><div class="cl-status-icon">⏳</div><div class="cl-info"><div class="cl-title">${sub.title}</div><div class="cl-meta">${sub.amount ? `סכום משוער: ₪${sub.amount}` : 'סכום משתנה'}</div></div><button class="cl-btn" onclick="openQuickPay('${subId}')">תשלום</button></div><div id="qp-${subId}" class="quick-pay-form"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="number" id="qp-amount-${subId}" placeholder="סכום (₪)" value="${sub.amount || ''}" style="margin:0; padding:10px;"><select id="qp-payer-${subId}" style="margin:0; padding:10px;"><option value="eliran">אלירן שילם</option><option value="dror">דרור שילם/ה</option></select></div><div style="display:flex; gap:10px;"><button class="btn btn-success" style="padding:10px; flex:2;" onclick="submitQuickPay('${subId}')">💾 אישור תשלום</button><button class="btn" style="padding:10px; flex:1; background:rgba(0,0,0,0.1); color:#333;" onclick="closeQuickPay('${subId}')">ביטול</button></div></div>`; } } container.innerHTML = html; container.querySelectorAll('select[id^="qp-payer-"]').forEach(sel => sel.value = currentPayer()); }
         function openQuickPay(subId) { document.querySelectorAll('.quick-pay-form').forEach(el => el.classList.remove('active')); document.getElementById(`qp-${subId}`).classList.add('active'); }
         function closeQuickPay(subId) { document.getElementById(`qp-${subId}`).classList.remove('active'); }
         function submitQuickPay(subId) { if (settlements[currentMonthKey]) return showAlert('החודש הנוכחי סגור. לא ניתן להוסיף.'); const sub = subscriptions[subId]; const amount = parseFloat(document.getElementById(`qp-amount-${subId}`).value); const payer = document.getElementById(`qp-payer-${subId}`).value; if (isNaN(amount) || amount <= 0) return showAlert('נא להזין סכום תקין.'); const expenseId = Date.now().toString(); const today = new Date().toISOString().split('T')[0]; db.ref('budget/expenses/' + expenseId).set({ id: expenseId, title: sub.title, amount: amount, date: today, payer: payer, category: sub.category || 'bills', monthKey: currentMonthKey, linkedSubId: subId, timestamp: Date.now() }).then(() => { showAlert(`${sub.title} עודכן בהצלחה!`); }); }
