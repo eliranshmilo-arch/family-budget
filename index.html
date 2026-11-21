@@ -95,7 +95,11 @@
         .modal-content p { margin-bottom: 25px; font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
 
         .locked-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, var(--primary-blue), var(--light-blue)); color: white; padding: 20px; text-align: center; position: absolute; top: 0; left: 0; width: 100%; z-index: 9999; }
-        .locked-screen input { text-align: center; letter-spacing: 10px; font-size: 1.5rem; width: 200px; margin: 20px 0; }
+        .auth-box { width: 100%; max-width: 320px; margin-top: 25px; display: flex; flex-direction: column; gap: 12px; }
+        .auth-box input { text-align: left; direction: ltr; font-size: 1.1rem; }
+        .auth-box .btn { background: white; color: var(--primary-blue); }
+        .auth-link { color: rgba(255,255,255,0.9); font-size: 0.95rem; font-weight: 600; text-decoration: underline; cursor: pointer; background: none; border: none; }
+        #auth-error { color: #fecaca; font-weight: 600; margin-top: 15px; min-height: 1.2em; white-space: pre-line; }
         #app-container { display: none; height: 100%; flex-direction: column; }
         .settled-banner { background: rgba(16, 185, 129, 0.1); color: #047857; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.2); display: none; }
 
@@ -118,9 +122,25 @@
     <div id="locked-screen" class="locked-screen">
         <h1 style="font-size: 2rem; margin-bottom: 10px;">ניהול תקציב משותף</h1>
         <p style="font-size: 1.1rem; opacity: 0.9;">אלירן ודרור</p>
-        <input type="password" id="pin-input" placeholder="••••" maxlength="4" pattern="\d*">
-        <button class="btn btn-primary" onclick="checkPin()" style="width: 200px; background: white; color: var(--primary-blue);">היכנס</button>
-        <p id="pin-error" style="color: #fca5a5; margin-top: 15px; display: none;">קוד שגוי, נסה שוב.</p>
+        <div id="auth-loading" style="margin-top: 25px; opacity: 0.9;">טוען...</div>
+
+        <div id="auth-form" class="auth-box" style="display: none;">
+            <input type="email" id="auth-email" placeholder="כתובת מייל" autocomplete="email">
+            <input type="password" id="auth-password" placeholder="סיסמה" autocomplete="current-password">
+            <input type="password" id="auth-password2" placeholder="אימות סיסמה" autocomplete="new-password" style="display: none;">
+            <button class="btn" id="auth-submit" onclick="submitAuth()">כניסה</button>
+            <button class="auth-link" id="auth-toggle" onclick="toggleAuthMode()">משתמש/ת חדש/ה? להרשמה</button>
+            <button class="auth-link" id="auth-reset" onclick="resetPassword()">שכחתי סיסמה</button>
+        </div>
+
+        <div id="auth-verify" class="auth-box" style="display: none;">
+            <p style="font-size: 1.05rem; line-height: 1.5;">שלחנו מייל אימות ל-<br><b id="verify-email" dir="ltr"></b><br>לחצו על הקישור במייל (בדקו גם בספאם), ואז על הכפתור:</p>
+            <button class="btn" onclick="checkVerified()">✅ אימתתי, המשך</button>
+            <button class="auth-link" onclick="resendVerification()">שלח מייל אימות שוב</button>
+            <button class="auth-link" onclick="logout()">התנתק</button>
+        </div>
+
+        <p id="auth-error"></p>
     </div>
 
     <div id="app-container">
@@ -228,6 +248,10 @@
             <!-- Tab 5: Settings -->
             <div id="tab-settings" class="tab-content">
                 <h2>⚙️ הגדרות מערכת</h2>
+                <div class="glass-panel" style="padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="min-width: 0;"><div style="font-size: 0.85rem; color: var(--text-gray); font-weight: 800;">מחובר/ת כ:</div><div id="account-email" dir="ltr" style="font-weight: 800; color: var(--text-dark); overflow: hidden; text-overflow: ellipsis; text-align: right;"></div></div>
+                    <button class="btn" onclick="if(confirm('להתנתק מהאפליקציה במכשיר זה?')) logout()" style="width: auto; padding: 10px 16px; font-size: 0.95rem; background: rgba(239, 68, 68, 0.1); color: var(--danger); box-shadow: none;">🚪 התנתק</button>
+                </div>
                 <div class="glass-panel" style="padding: 20px; margin-bottom: 25px;">
                     <h3 style="font-size: 1.1rem; color: var(--primary-blue); margin-bottom: 15px; font-weight:800;">הוספת הוצאה קבועה לצ'קליסט</h3>
                     <div class="input-group"><label>שם ההוצאה הקבועה (למשל: תמי 4)</label><input type="text" id="set-sub-title" placeholder="הכנס שם..."></div>
@@ -269,17 +293,112 @@
         const firebaseConfig = { apiKey: "AIzaSyDQdVZy5STaT7oOlzXcH2NbN6eoAIyWNSI", authDomain: "home-budget-app-4d311.firebaseapp.com", databaseURL: "https://home-budget-app-4d311-default-rtdb.europe-west1.firebasedatabase.app", projectId: "home-budget-app-4d311", storageBucket: "home-budget-app-4d311.firebasestorage.app", messagingSenderId: "96787067118", appId: "1:96787067118:web:13c2ce5aa7872d193983ff" };
         firebase.initializeApp(firebaseConfig); 
         
-        // --- קסם ההתחברות האנונימית ---
-        firebase.auth().signInAnonymously().catch((error) => {
-            console.error("שגיאה בהתחברות השקטה:", error);
-        });
-        
         const db = firebase.database();
         firebase.database().goOnline();
 
-        function checkPin() { const pin = document.getElementById('pin-input').value; if (pin === "1981") { sessionStorage.setItem('budget_unlocked', 'true'); document.getElementById('locked-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; initApp(); } else { document.getElementById('pin-error').style.display = 'block'; document.getElementById('pin-input').value = ''; } }
-        document.getElementById('pin-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') { checkPin(); this.blur(); } });
-        if (sessionStorage.getItem('budget_unlocked') === 'true') { document.getElementById('locked-screen').style.display = 'none'; document.getElementById('app-container').style.display = 'flex'; initApp(); }
+        // --- Authentication (מייל + סיסמה) ---
+        // רשימת המורשים. האכיפה האמיתית נעשית ב-Firebase Database Rules.
+        const ALLOWED_EMAILS = ['eliranshmilo@gmail.com', 'deror82@gmail.com'];
+        const auth = firebase.auth();
+        let authMode = 'login'; let appStarted = false;
+
+        function authErrorText(err) {
+            const map = {
+                'auth/invalid-credential': 'מייל או סיסמה שגויים.', 'auth/wrong-password': 'מייל או סיסמה שגויים.', 'auth/user-not-found': 'המשתמש לא קיים. יש להירשם קודם.',
+                'auth/invalid-login-credentials': 'מייל או סיסמה שגויים.', 'auth/email-already-in-use': 'המייל כבר רשום. עברו ל"כניסה".', 'auth/weak-password': 'הסיסמה חלשה מדי (לפחות 6 תווים).',
+                'auth/invalid-email': 'כתובת מייל לא תקינה.', 'auth/too-many-requests': 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות.', 'auth/network-request-failed': 'אין חיבור לאינטרנט.',
+                'auth/operation-not-allowed': 'כניסה במייל וסיסמה לא הופעלה ב-Firebase.'
+            };
+            return map[err.code] || ('שגיאה: ' + (err.message || err.code));
+        }
+        function setAuthError(msg) { document.getElementById('auth-error').innerText = msg || ''; }
+
+        function showAuthScreen(view, email) {
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('locked-screen').style.display = 'flex';
+            document.getElementById('auth-loading').style.display = view === 'loading' ? 'block' : 'none';
+            document.getElementById('auth-form').style.display = view === 'form' ? 'flex' : 'none';
+            document.getElementById('auth-verify').style.display = view === 'verify' ? 'flex' : 'none';
+            if (view === 'verify') document.getElementById('verify-email').innerText = email;
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'login' ? 'signup' : 'login'; setAuthError('');
+            const signup = authMode === 'signup';
+            document.getElementById('auth-password2').style.display = signup ? 'block' : 'none';
+            document.getElementById('auth-reset').style.display = signup ? 'none' : 'block';
+            document.getElementById('auth-submit').innerText = signup ? 'הרשמה' : 'כניסה';
+            document.getElementById('auth-toggle').innerText = signup ? 'כבר רשום/ה? לכניסה' : 'משתמש/ת חדש/ה? להרשמה';
+            document.getElementById('auth-password').setAttribute('autocomplete', signup ? 'new-password' : 'current-password');
+        }
+
+        async function submitAuth() {
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const pass = document.getElementById('auth-password').value;
+            setAuthError('');
+            if (!email || !pass) return setAuthError('יש למלא מייל וסיסמה.');
+            if (!ALLOWED_EMAILS.includes(email)) return setAuthError('המייל הזה אינו מורשה לגשת לאפליקציה.');
+            const btn = document.getElementById('auth-submit'); btn.disabled = true;
+            try {
+                if (authMode === 'signup') {
+                    if (pass.length < 6) return setAuthError('הסיסמה חייבת להכיל לפחות 6 תווים.');
+                    if (pass !== document.getElementById('auth-password2').value) return setAuthError('הסיסמאות אינן תואמות.');
+                    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                    auth.languageCode = 'he';
+                    await cred.user.sendEmailVerification();
+                } else {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                }
+            } catch (err) { setAuthError(authErrorText(err)); }
+            finally { btn.disabled = false; }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            if (!email) return setAuthError('הקלידו את כתובת המייל בשדה ואז לחצו "שכחתי סיסמה".');
+            if (!ALLOWED_EMAILS.includes(email)) return setAuthError('המייל הזה אינו מורשה לגשת לאפליקציה.');
+            try { auth.languageCode = 'he'; await auth.sendPasswordResetEmail(email); setAuthError('נשלח מייל לאיפוס סיסמה (בדקו גם בספאם).'); }
+            catch (err) { setAuthError(authErrorText(err)); }
+        }
+
+        async function checkVerified() {
+            const user = auth.currentUser; if (!user) return showAuthScreen('form');
+            await user.reload();
+            if (!auth.currentUser.emailVerified) return setAuthError('המייל עדיין לא אומת. לחצו על הקישור במייל ונסו שוב.');
+            await auth.currentUser.getIdToken(true); // רענון כדי שה-Rules יזהו שהמייל אומת
+            handleAuthUser(auth.currentUser);
+        }
+
+        async function resendVerification() {
+            try { auth.languageCode = 'he'; await auth.currentUser.sendEmailVerification(); setAuthError('מייל אימות נשלח שוב.'); }
+            catch (err) { setAuthError(authErrorText(err)); }
+        }
+
+        async function logout() {
+            try {
+                const key = localStorage.getItem(PUSH_TOKEN_STORAGE);
+                if (key && auth.currentUser && auth.currentUser.emailVerified) await db.ref('budget/pushTokens/' + key).remove();
+                localStorage.removeItem(PUSH_TOKEN_STORAGE);
+            } catch (e) { console.error(e); }
+            await auth.signOut();
+            location.reload();
+        }
+
+        async function handleAuthUser(user) {
+            setAuthError('');
+            if (!user) return showAuthScreen('form');
+            if (user.isAnonymous) { await auth.signOut(); return; } // ניקוי התחברות אנונימית ישנה
+            const email = (user.email || '').toLowerCase();
+            if (!ALLOWED_EMAILS.includes(email)) { await auth.signOut(); showAuthScreen('form'); return setAuthError('המייל הזה אינו מורשה לגשת לאפליקציה.'); }
+            if (!user.emailVerified) return showAuthScreen('verify', email);
+            document.getElementById('locked-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            document.getElementById('account-email').innerText = email;
+            if (!appStarted) { appStarted = true; initApp(); }
+        }
+
+        auth.onAuthStateChanged(handleAuthUser);
+        ['auth-email', 'auth-password', 'auth-password2'].forEach(id => document.getElementById(id).addEventListener('keypress', (e) => { if (e.key === 'Enter') submitAuth(); }));
 
         let allExpenses = {}; let settlements = {}; let subscriptions = {}; let currentMonthKey = ""; let currentEditId = null;
         const catIcons = { 'supermarket': '🛒', 'bills': '⚡', 'kids': '🧸', 'car': '🚗', 'entertainment': '🍻', 'misc': '🛍️' };
@@ -298,6 +417,9 @@
                 populateReportSelector();
                 populateSettleSelector(); // תפריט גלילה לעמוד הקיזוז
                 updateDashboard(); renderExpensesList(); renderSmartChecklist(); renderSettingsSubscriptions(); updateSettlementTab();
+            }, (err) => {
+                console.error('DB read error:', err);
+                showAlert('אין הרשאת גישה לנתונים. ודאו שהמייל שלכם מאומת ומורשה.');
             });
             initPushStatus();
         }
@@ -342,7 +464,7 @@
                 const key = token.replace(/[.#$\[\]\/]/g, '_').slice(-60);
                 const oldKey = localStorage.getItem(PUSH_TOKEN_STORAGE);
                 if (oldKey && oldKey !== key) db.ref('budget/pushTokens/' + oldKey).remove();
-                await db.ref('budget/pushTokens/' + key).set({ token: token, userAgent: navigator.userAgent, updatedAt: Date.now() });
+                await db.ref('budget/pushTokens/' + key).set({ token: token, email: (auth.currentUser && auth.currentUser.email) || '', userAgent: navigator.userAgent, updatedAt: Date.now() });
                 localStorage.setItem(PUSH_TOKEN_STORAGE, key);
                 setPushStatus('התראות פעילות במכשיר זה ✅', 'var(--success)');
                 document.getElementById('btn-enable-push').innerText = '🔄 רענן רישום התראות';
